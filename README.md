@@ -7,6 +7,8 @@
 
 If you are not using Visual Studio, make sure you are using an up-to-date compiler and link in the .lib
 
+Firstly, download https://desktop.github.com for a gui git environment. After that is done, create a new empty Visual Studio project. Once the project is created, use the desktop git environment to clone this repository to your computer. When the repository is on your computer, import those files into visual studio to edit. When you are done with an edit, you can use the git environment to commit a change to a branch.
+
 After creating your project, right click it and select properties.
 Make sure your configuration is in "All Configurations" before continuing
 ```
