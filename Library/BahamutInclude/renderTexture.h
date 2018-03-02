@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// FILE:                       rectangle.h                               //
+// FILE:                    renderTexture.h                              //
 ///////////////////////////////////////////////////////////////////////////
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
@@ -25,22 +25,20 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef RECTANGLE_H
-#define RECTANGLE_H
+#ifndef RENDER_TEXTURE_H
+#define RENDER_TEXTURE_H
 
-#include "vec2f.h"
+#include <GL/glew.h>
 
-struct Rect {
-	Rect();
-	Rect(float x, float y, float width, float height);
-	float x;
-	float y;
-	float width;
-	float height;
+struct RenderTexture {
+	GLuint framebufferID;
+	GLuint textureID;
+	unsigned long flip_flag;
+	int width;
+	int height;
 };
 
-bool colliding(Rect& first, Rect& second);
-bool colliding(Rect& rect, float x, float y, float width, float height);
-bool colliding(Rect& rect, vec2f& point);
+void createRenderTexture(int width, int height);
+void createRenderTexture(Texture& base);
 
 #endif

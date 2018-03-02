@@ -1,8 +1,34 @@
-#pragma once
+///////////////////////////////////////////////////////////////////////////
+// FILE:                      keyDefines.h                               //
+///////////////////////////////////////////////////////////////////////////
+//                      BAHAMUT GRAPHICS LIBRARY                         //
+//                        Author: Corbin Stark                           //
+///////////////////////////////////////////////////////////////////////////
+//                                                                       //
+// Permission is hereby granted, free of charge, to any person obtaining //
+// a copy of this software and associated documentation files (the       //
+// "Software"), to deal in the Software without restriction, including   //
+// without limitation the rights to use, copy, modify, merge, publish,   //
+// distribute, sublicense, and/or sell copies of the Software, and to    //
+// permit persons to whom the Software is furnished to do so, subject to //
+// the following conditions:                                             //
+//                                                                       //
+// The above copyright notice and this permission notice shall be        //
+// included in all copies or substantial portions of the Software.       //
+//                                                                       //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       //
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    //
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.//
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  //
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  //
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     //
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
+///////////////////////////////////////////////////////////////////////////
+
+#ifndef KEY_DEFINES_H
+#define KEY_DEFINES_H
+
 #include <GLFW\glfw3.h>
-//Taken from GLFW and remove GLFW_ for less confusion
-//I'm pretty sure there's nothing wrong with this but I'm not a lawyer so
-//contact me if this is not acceptable
 #define RELEASE                0
 
 #define PRESS                  1
@@ -171,3 +197,5 @@
 #define JOYSTICK_15            14
 #define JOYSTICK_16            15
 #define JOYSTICK_LAST          GLFW_JOYSTICK_16
+
+#endif
