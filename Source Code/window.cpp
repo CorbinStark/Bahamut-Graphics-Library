@@ -72,20 +72,21 @@ void rebuildState() {
 	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+//TODO: implement the GUI into this engine.
 void keycallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
 	bmt_win.keys[key] = action;
-	Panel::key_callback_func(key, action);
+	//Panel::key_callback_func(key, action);
 }
 
 void cursorPosCallback(GLFWwindow* win, double xPos, double yPos) {
 	bmt_win.mousex = xPos;
 	bmt_win.mousey = yPos;
-	Panel::mouse_pos_callback_func(xPos, yPos);
+	//Panel::mouse_pos_callback_func(xPos, yPos);
 }
 
 void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
 	bmt_win.buttons[button] = action;
-	Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
+	//Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
 }
 
 void resizeCallback(GLFWwindow* win, int width, int height) {
@@ -352,7 +353,7 @@ vec2f getMousePos() {
 
 void disposeWindow() {
 	glfwSetWindowShouldClose(bmt_win.glfw_window, true);
-	//I could actually free all memory and stuff but who cares if the window is closing the program will end and the OS will do it for me.
+	dispose2D();
 }
 
 void setMouseLocked(bool locked) {

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// FILE:                     framebuffer.h                               //
+// FILE:                    renderTexture.h                              //
 ///////////////////////////////////////////////////////////////////////////
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
@@ -25,14 +25,20 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef FRAMEBUFFER_H
-#define FRAMEBUFFER_H
+#ifndef RENDER_TEXTURE_H
+#define RENDER_TEXTURE_H
 
 #include <GL/glew.h>
 
-struct FrameBuffer {
-	GLuint ID;
-
+struct RenderTexture {
+	GLuint framebufferID;
+	GLuint textureID;
+	unsigned long flip_flag;
+	int width;
+	int height;
 };
+
+void createRenderTexture(int width, int height);
+void createRenderTexture(Texture& base);
 
 #endif

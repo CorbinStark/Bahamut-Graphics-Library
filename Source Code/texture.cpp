@@ -89,7 +89,7 @@ void disposeTexture(Texture& texture) {
 	glDeleteTextures(1, &texture.ID);
 }
 
-void blitTexture(Texture& src, Texture& dest, Rectangle drawFrom, Rectangle drawTo) {
+void blitTexture(Texture& src, Texture& dest, Rect drawFrom, Rect drawTo) {
 
 }
 

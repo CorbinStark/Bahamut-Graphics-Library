@@ -47,7 +47,7 @@ Texture loadTexture(unsigned char* pixels, int width, int height, int param);
 Texture loadTexture(std::string filepath, int param);
 void disposeTexture(Texture& texture);
 
-void blitTexture(Texture& src, Texture& dest, Rectangle drawFrom, Rectangle drawTo);
+void blitTexture(Texture& src, Texture& dest, Rect drawFrom, Rect drawTo);
 
 void setTexturePixels(Texture& texture, unsigned char* pixels, int width, int height);
 void setTexturePixelsFromFile(Texture& texture, std::string filepath);

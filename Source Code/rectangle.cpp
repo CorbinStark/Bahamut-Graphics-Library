@@ -27,15 +27,15 @@
 
 #include "rectangle.h"
 
-Rectangle::Rectangle() { x = y = width = height = 0; }
-Rectangle::Rectangle(float x, float y, float width, float height) {
+Rect::Rect() { x = y = width = height = 0; }
+Rect::Rect(float x, float y, float width, float height) {
 	this->x = x;
 	this->y = y;
 	this->width = width;
 	this->height = height;
 }
 
-bool colliding(Rectangle& first, Rectangle& second) {
+bool colliding(Rect& first, Rect& second) {
 	if (first.x + first.width >= second.x && first.x <= second.x + second.width) {
 		if (first.y <= second.y + second.height && first.y + first.height >= second.y) {
 			return true;
@@ -44,7 +44,7 @@ bool colliding(Rectangle& first, Rectangle& second) {
 	return false;
 }
 
-bool colliding(Rectangle& rect, float x, float y, float width, float height) {
+bool colliding(Rect& rect, float x, float y, float width, float height) {
 	if (rect.x + rect.width >= x && rect.x <= x + width) {
 		if (rect.y <= y + height && rect.y + rect.height >= y) {
 			return true;
@@ -53,7 +53,7 @@ bool colliding(Rectangle& rect, float x, float y, float width, float height) {
 	return false;
 }
 
-bool colliding(Rectangle& rect, vec2f& point) {
+bool colliding(Rect& rect, vec2f& point) {
 	if (rect.x + rect.width >= point.x && rect.x <= point.x + 1) {
 		if (rect.y <= point.y + 1 && rect.y + rect.height >= point.y) {
 			return true;
