@@ -1,13 +1,11 @@
-# BahamutEngine
-2D and 3D compatible game engine created in C++ using OpenGL, OpenAL, and GLFW. BahamutEngine aims to streamline and simplify the games programming experience. Easy to learn, easy to master - without sacrificing power.
+# Bahamut Graphics Library
+2D and 3D compatible graphics library created in C++ using OpenGL, OpenAL, and GLFW. Bahamut aims to streamline and simplify the games programming experience. Easy to learn, easy to master.
 
-## Linking the engine into Visual Studio
+## Linking the library into Visual Studio
 
 > If you aren't using Visual Studio 2017, this may not work. Upgrading to Visual Studio 2017 is highly recommended. Any 'p1' and 'p2' mismatch is likely due to having a wrong Visual Studio version. I could also recompile the engine on a different VS version if that is preferable.
 
 If you are not using Visual Studio, make sure you are using an up-to-date compiler and link in the .lib
-
-Firstly, download https://desktop.github.com for a gui git environment. After that is done, create a new empty Visual Studio project. Once the project is created, use the desktop git environment to clone this repository to your computer. When the repository is on your computer, import those files into visual studio to edit. When you are done with an edit, you can use the git environment to commit a change to a branch.
 
 After creating your project, right click it and select properties.
 Make sure your configuration is in "All Configurations" before continuing
@@ -47,7 +45,7 @@ Contact me if this did not work for you.
 
 ## Documentation
 
-The engine utilized aims to simplify the games programming experience. As such there is only one window,
+This graphics library aims to simplify the games programming experience. As such there is only one window,
 so all functions related to input and drawing are global and can be called from anywhere.
 
 To initialize the window
@@ -58,7 +56,7 @@ initWindow(width, height, title, fullscreen, resizable, primary_monitor);
 initWindow(800, 600, "Attack of the Unidead", false, true, 0);
 ```
 
-After initialization, the features of the engine become available. The available functions are listed here,
+After initialization, the features of the library become available. The available functions are listed here,
 
 ### General
 
