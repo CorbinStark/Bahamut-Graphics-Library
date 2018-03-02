@@ -2,7 +2,7 @@
 // FILE:			          framebuffer.h                              //
 ///////////////////////////////////////////////////////////////////////////
 //                      BAHAMUT GRAPHICS LIBRARY                         //
-//						  Author: Corbin Stark							 //
+//                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
