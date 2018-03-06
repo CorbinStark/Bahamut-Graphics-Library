@@ -47,6 +47,8 @@ bool isWindowClosed();
 
 void setClearColor(float r, float g, float b, float a);
 void setClearColor(vec4f& color);
+void setKeyCallback(void(*keyCallback)(int key, int action));
+void setMouseCallback(void(*mouseCallback)(double mousex, double mousey, int button, int action));
 void setWindowResizeCallback(void(*resizecallback)(int width, int height));
 
 bool isKeyPressed(unsigned int keycode);
@@ -70,6 +72,10 @@ void setMouseLocked(bool locked);
 void setMouseHidden(bool hidden);
 void setVSync(bool vsync);
 
+void setVirtualSize(int v_width, int v_height);
+int getVirtualWidth();
+int getVirtualHeight();
+vec2f getVirtualSize();
 int getWindowWidth();
 int getWindowHeight();
 

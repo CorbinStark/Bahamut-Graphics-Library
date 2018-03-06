@@ -52,6 +52,8 @@ struct Font {
 Texture createTextureFromString(Font& font, const std::string str, GLubyte r = 0, GLubyte g = 0, GLubyte b = 0);
 Font loadFont(const GLchar* filepath, unsigned int size);
 void disposeFont(Font& font);
+
+//text must be less than 128 chars long.
 inline const char* formatText(const char* text, ...) {
 	static char buffer[MAX_FORMAT_TEXT_SIZE];
 

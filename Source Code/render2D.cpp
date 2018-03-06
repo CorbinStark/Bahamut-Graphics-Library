@@ -38,7 +38,6 @@ unsigned short BMT_texcount;
 GLuint BMT_textures[BATCH_MAX_TEXTURES];
 GLchar* BMT_locations[BATCH_MAX_TEXTURES];
 VertexData* BMT_buffer;
-Rect BMT_viewport_rect;
 
 BMTStretchMode BMT_stretch_mode;
 BMTAspectMode BMT_aspect_mode;
@@ -85,9 +84,9 @@ int submitTex(Texture& tex) {
 }
 
 void init2D(int x, int y, int width, int height) {
-	BMT_stretch_mode = BMTStretchMode::NONE;
-	BMT_aspect_mode = BMTAspectMode::NONE;
-	set2DRenderViewport(x, y, width, height);
+	BMT_stretch_mode = STRETCH_NONE;
+	BMT_aspect_mode = ASPECT_NONE;
+	set2DRenderViewport(x, y, width, height, getVirtualWidth(), getVirtualHeight());
 	glViewport(x, y, width, height);
 	BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
 	BMT_texcount = BMT_indexcount = 0;
@@ -136,7 +135,7 @@ void init2D(int x, int y, int width, int height) {
 
 	//the last argument to glVertexAttribPointer is the offset from the start of the vertex to the
 	//data you want to look at - so each new attrib adds up all the ones before it.
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, BATCH_VERTEX_SIZE, (const GLvoid*)0);					       //vertices
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, BATCH_VERTEX_SIZE, (const GLvoid*)0);                     //vertices
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, BATCH_VERTEX_SIZE, (const GLvoid*)(2 * sizeof(GLfloat))); //color
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, BATCH_VERTEX_SIZE, (const GLvoid*)(6 * sizeof(GLfloat))); //tex coords
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, BATCH_VERTEX_SIZE, (const GLvoid*)(8 * sizeof(GLfloat))); //texture id
@@ -159,7 +158,7 @@ void init2D(int x, int y, int width, int height) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BMT_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, BATCH_INDICE_SIZE * sizeof(GLushort), indices, GL_STATIC_DRAW);
 
-	//the vao must be unbound before the buffers..... don't ask me why
+	//the vao must be unbound before the buffers
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -240,23 +239,7 @@ void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, fl
 	b /= 255;
 	a /= 255;
 
-	int texSlot = 0;
-	bool found = false;
-	for (int i = 0; i < BMT_texcount; ++i) {
-		if (BMT_textures[i] == tex.ID) {
-			texSlot = (i + 1);
-			found = true;
-			break;
-		}
-	}
-	if (!found) {
-		if (BMT_texcount >= BATCH_MAX_TEXTURES) {
-			end2D();
-			begin2D();
-		}
-		BMT_textures[BMT_texcount++] = tex.ID;
-		texSlot = BMT_texcount;
-	}
+	int texSlot = submitTex(tex);
 	GLfloat* uvs;
 
 	uvs = BMT_DEFAULT_UVS;
@@ -419,25 +402,7 @@ void drawTextureEX(Texture& tex, Rect source, Rect dest) {
 	EX_UVS[7] = source.y / tex.height;
 	GLfloat* uvs = EX_UVS;
 
-	//FORCIBLY INLINED submitTex FOR PERFORMANCE
-	int texSlot = 0;
-	bool found = false;
-	for (int i = 0; i < BMT_texcount; ++i) {
-		if (BMT_textures[i] == tex.ID) {
-			texSlot = (i + 1);
-			found = true;
-			break;
-		}
-	}
-	if (!found) {
-		if (BMT_texcount >= BATCH_MAX_TEXTURES) {
-			end2D();
-			begin2D();
-		}
-		BMT_textures[BMT_texcount++] = tex.ID;
-		texSlot = BMT_texcount;
-	}
-	//FORCIBLY INLINED submitTex FOR PERFORMANCE
+	int texSlot = submitTex(tex);
 
 	BMT_buffer->pos.x = dest.x;
 	BMT_buffer->pos.y = dest.y;
@@ -714,31 +679,54 @@ void setAspectMode(BMTAspectMode mode) {
 	BMT_aspect_mode = mode;
 }
 
-Rect getViewportRect() {
-	return BMT_viewport_rect;
+void limitViewportToAspectRatio(float aspect, float screen_width, float screen_height) {
+	int new_width = screen_width;
+	int new_height = (int)(screen_width / aspect);
+	if (new_height > screen_height) {
+		new_height = screen_height;
+		new_width = (int)(screen_height * aspect);
+	}
+	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
 }
 
-vec2f getViewportSize() {
-	return vec2f(BMT_viewport_rect.width, BMT_viewport_rect.height);
-}
+void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height) {
+	if (virtual_height == 0) virtual_height = 1;
 
-int getViewportWidth() {
-	return BMT_viewport_rect.width;
-}
-
-int getViewportHeight() {
-	return BMT_viewport_rect.height;
-}
-
-void set2DRenderViewport(int x, int y, int width, int height) {
-	if (BMT_stretch_mode == BMTStretchMode::PROJECTION || BMT_stretch_mode == BMTStretchMode::NONE) {
+	if (BMT_stretch_mode == STRETCH_NONE) {
 		BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
-		BMT_viewport_rect = Rect(x, y, width, height);
+		glViewport(x, y, width, height);
+		//if there is no stretching, ignore aspect ratio.
 	}
 
-	if (BMT_stretch_mode == BMTStretchMode::VIEWPORT || BMT_stretch_mode == BMTStretchMode::NONE)
-		glViewport(x, y, width, height);
+	//TODO: Fix projection stretch
+	if (BMT_stretch_mode == STRETCH_PROJECTION) {
+		if (BMT_aspect_mode == ASPECT_NONE) {
+			BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP) {
+			float aspect = (float)virtual_width / (float)virtual_height;
+
+			int new_width = width;
+			int new_height = (int)(width / aspect);
+			if (new_height > height) {
+				new_height = height;
+				new_width = (int)(height * aspect);
+			}
+			BMT_ortho_projection = mat4f::orthographic((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
+		}
+	}
+
+	if (BMT_stretch_mode == STRETCH_VIEWPORT) {
+		if (BMT_aspect_mode == ASPECT_NONE) {
+			glViewport(x, y, width, height);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP) {
+			float aspect = (float)virtual_width / (float)virtual_height;
+			limitViewportToAspectRatio(aspect, width, height);
+		}
+	}
 }
+
 void attachShader2D(Shader shader_in) {
 	BMT_shader = shader_in;
 }

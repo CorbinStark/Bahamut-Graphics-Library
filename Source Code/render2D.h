@@ -34,18 +34,17 @@
 #include "rectangle.h"
 #include "renderTexture.h"
 
-enum class BMTStretchMode {
-	NONE,
-	PROJECTION,
-	VIEWPORT
+enum BMTStretchMode {
+	STRETCH_NONE,
+	STRETCH_PROJECTION,
+	STRETCH_VIEWPORT
 };
 
-enum class BMTAspectMode {
-	NONE,
-	KEEP,
-	KEEP_WIDTH,
-	KEEP_HEIGHT,
-	EXPAND
+enum BMTAspectMode {
+	ASPECT_NONE,
+	ASPECT_KEEP,
+	ASPECT_KEEP_WIDTH,
+	ASPECT_KEEP_HEIGHT
 };
 
 #define BATCH_MAX_SPRITES	    20000
@@ -112,12 +111,7 @@ int submitTex(Texture& tex);
 void setStretchMode(BMTStretchMode mode);
 void setAspectMode(BMTAspectMode mode);
 
-Rect getViewportRect();
-vec2f getViewportSize();
-int getViewportWidth();
-int getViewportHeight();
-
-void set2DRenderViewport(int x, int y, int width, int height);
+void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height);
 void attachShader2D(Shader shader);
 
 void dispose2D();

@@ -33,18 +33,20 @@
 #include <windows.h>
 #endif
 #if defined(__LINUX__)
-
+#include <unistd.h>
 #endif
-#if defined(_APPLE_)
-
+#if defined(__APPLE__)
+#include <unistd.h>
 #endif
 
-struct	BMTWindow {
+struct BMTWindow {
 	GLFWwindow* glfw_window;
 	int x;
 	int y;
 	int width;
 	int height;
+	int virtual_width;
+	int virtual_height;
 	int mousex;
 	int mousey;
 
@@ -62,9 +64,11 @@ struct	BMTWindow {
 	double frameTime = 0.0;
 	double targetTime = 0.0;
 
+	void(*BMTKeyCallback)(int key, int action);
+	void(*BMTMouseCallback)(double mousex, double mousey, int button, int action);
 	void(*BMTResizeCallback)(int width, int height);
 };
-BMTWindow bmt_win;
+static BMTWindow bmt_win;
 
 void rebuildState() {
 	glEnable(GL_BLEND);
@@ -75,6 +79,8 @@ void rebuildState() {
 //TODO: implement the GUI into this engine.
 void keycallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
 	bmt_win.keys[key] = action;
+	if(bmt_win.BMTKeyCallback != NULL)
+		bmt_win.BMTKeyCallback(key, action);
 	//Panel::key_callback_func(key, action);
 }
 
@@ -86,6 +92,8 @@ void cursorPosCallback(GLFWwindow* win, double xPos, double yPos) {
 
 void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
 	bmt_win.buttons[button] = action;
+	if (bmt_win.BMTMouseCallback != NULL)
+		bmt_win.BMTMouseCallback(getMousePos().x, getMousePos().y, button, action);
 	//Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
 }
 
@@ -94,12 +102,15 @@ void resizeCallback(GLFWwindow* win, int width, int height) {
 		bmt_win.BMTResizeCallback(width, height);
 	bmt_win.width = width;
 	bmt_win.height = height;
-	set2DRenderViewport(0, 0, width, height);
+	set2DRenderViewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
 }
 
 void initWindow(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
 	bmt_win.width = width;
 	bmt_win.height = height;
+
+	bmt_win.virtual_width = width;
+	bmt_win.virtual_height = height;
 
 	//INIT GLFW
 	if (!glfwInit()) {
@@ -196,7 +207,7 @@ void setWindowSize(int width, int height) {
 	bmt_win.width = width;
 	bmt_win.height = height;
 	glfwSetWindowSize(bmt_win.glfw_window, width, height);
-	set2DRenderViewport(0, 0, width, height);
+	set2DRenderViewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
 }
 
 void setClearColor(float r, float g, float b, float a) {
@@ -238,14 +249,14 @@ void endDrawing() {
 		double prevTime = glfwGetTime();
 		double nextTime = 0.0;
 
-		// Busy wait loop
 #if defined(_BUSY_WAIT)
+		// Busy wait loop
 		while ((bmt_win.nextTime - bmt_win.prevTime) < ((bmt_win.targetTime - bmt_win.frameTime)*1000.0f) / 1000.0f) bmt_win.nextTime = glfwGetTime();
 #elif defined(_WIN32)
 		Sleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
 #elif defined(__LINUX__)
 		usleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
-#elif defined(_APPLE_)
+#elif defined(__APPLE__)
 		usleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
 #endif
 
@@ -276,8 +287,16 @@ bool isWindowClosed() {
 	return glfwWindowShouldClose(bmt_win.glfw_window) == 1;
 }
 
-void setWindowResizeCallback(void(*BMTmousecallback)(int width, int height)) {
-	bmt_win.BMTResizeCallback = BMTmousecallback;
+void setKeyCallback(void(*keyCallback)(int key, int action)) {
+	bmt_win.BMTKeyCallback = keyCallback;
+}
+
+void setMouseCallback(void(*mouseCallback)(double mousex, double mousey, int button, int action)) {
+	bmt_win.BMTMouseCallback = mouseCallback;
+}
+
+void setWindowResizeCallback(void(*resizecallback)(int width, int height)) {
+	bmt_win.BMTResizeCallback = resizecallback;
 }
 
 bool isKeyPressed(unsigned int keycode) {
@@ -358,6 +377,23 @@ void disposeWindow() {
 
 void setMouseLocked(bool locked) {
 	bmt_win.locked = locked;
+}
+
+void setVirtualSize(int v_width, int v_height) {
+	bmt_win.virtual_width = v_width;
+	bmt_win.virtual_height = v_height;
+}
+
+int getVirtualWidth() {
+	return bmt_win.virtual_width;
+}
+
+int getVirtualHeight() {
+	return bmt_win.virtual_height;
+}
+
+vec2f getVirtualSize() {
+	return vec2f(bmt_win.virtual_width, bmt_win.virtual_height);
 }
 
 int getWindowWidth() {
