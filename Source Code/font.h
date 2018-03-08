@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -30,10 +31,10 @@
 
 #include "texture.h"
 #include "vec2f.h"
+#include "defines.h"
+#include <GL/glew.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H 
-
-#define MAX_FORMAT_TEXT_SIZE 128
 
 struct Character {
 	Texture	texture;

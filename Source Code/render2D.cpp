@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -28,40 +29,49 @@
 #include "render2D.h"
 #include "orthoshader.h"
 #include "window.h"
+#include <GL/glew.h>
 
-//I'm using globals because, let's be honest, singletons are just globals for people too afraid to use globals
-GLuint BMT_vao;
-GLuint BMT_vbo;
-GLuint BMT_ebo;
-unsigned short BMT_indexcount;
-unsigned short BMT_texcount;
-GLuint BMT_textures[BATCH_MAX_TEXTURES];
-GLchar* BMT_locations[BATCH_MAX_TEXTURES];
-VertexData* BMT_buffer;
+INTERNAL GLuint BMT_vao;
+INTERNAL GLuint BMT_vbo;
+INTERNAL GLuint BMT_ebo;
+INTERNAL unsigned short BMT_indexcount;
+INTERNAL unsigned short BMT_texcount;
+INTERNAL GLuint BMT_textures[BATCH_MAX_TEXTURES];
+INTERNAL GLchar* BMT_locations[BATCH_MAX_TEXTURES];
+INTERNAL VertexData* BMT_buffer;
 
-BMTStretchMode BMT_stretch_mode;
-BMTAspectMode BMT_aspect_mode;
+INTERNAL StretchMode BMT_stretch_mode;
+INTERNAL AspectMode BMT_aspect_mode;
 
-Shader BMT_shader;
-mat4f BMT_ortho_projection;
+INTERNAL Shader BMT_shader;
+INTERNAL mat4f BMT_ortho_projection;
+INTERNAL mat4f BMT_custom_projection;
+INTERNAL bool BMT_using_custom_projection;
 
+INTERNAL Rect BMT_viewport_rect;
+
+INTERNAL
 GLfloat BMT_DEFAULT_UVS[8] = {
 	0, 0, 0, 1,
 	1, 1, 1, 0
 };
+INTERNAL 
 GLfloat BMT_FLIP_HORIZONTAL_UVS[8] = {
 	1, 0, 1, 1,
 	0, 1, 0, 0
 };
+INTERNAL 
 GLfloat BMT_FLIP_VERTICAL_UVS[8] = {
 	0, 1, 0, 0,
 	1, 0, 1, 1
 };
+INTERNAL 
 GLfloat BMT_FLIP_BOTH_UVS[8] = {
 	1, 1, 1, 0,
 	0, 0, 0, 1
 };
 
+INTERNAL 
 int submitTex(Texture& tex) {
 	int texSlot = 0;
 	bool found = false;
@@ -87,8 +97,6 @@ void init2D(int x, int y, int width, int height) {
 	BMT_stretch_mode = STRETCH_NONE;
 	BMT_aspect_mode = ASPECT_NONE;
 	set2DRenderViewport(x, y, width, height, getVirtualWidth(), getVirtualHeight());
-	glViewport(x, y, width, height);
-	BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
 	BMT_texcount = BMT_indexcount = 0;
 
 	//LOAD SHADER - CUSTOM LOAD BECAUSE ATTRIB LOCATIONS MUST BE BOUND MANUALLY TO SUPPORT EARLIER VERSIONS
@@ -105,7 +113,6 @@ void init2D(int x, int y, int width, int height) {
 	glLinkProgram(BMT_shader.programID);
 	glValidateProgram(BMT_shader.programID);
 	glUseProgram(0);
-	//LOAD SHADER - CUSTOM LOAD BECAUSE ATTRIB LOCATIONS MUST BE BOUND MANUALLY TO SUPPORT EARLIER VERSIONS
 	for (int i = 0; i < BATCH_MAX_TEXTURES; ++i)
 		BMT_textures[i] = 0;
 
@@ -168,6 +175,12 @@ void begin2D() {
 	BMT_buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 	);
+}
+
+void begin2D(mat4f projection) {
+	BMT_custom_projection = projection;
+	BMT_using_custom_projection = true;
+	begin2D();
 }
 
 void drawTexture(Texture& tex, int xPos, int yPos) {
@@ -638,7 +651,11 @@ void end2D() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	startShader(&BMT_shader);
-	loadMat4f(&BMT_shader, "pr_matrix", BMT_ortho_projection);
+	if (BMT_using_custom_projection)
+		loadMat4f(&BMT_shader, "pr_matrix", BMT_custom_projection);
+	else
+		loadMat4f(&BMT_shader, "pr_matrix", BMT_ortho_projection);
+	BMT_using_custom_projection = false;
 
 	for (int i = 0; i < BMT_texcount; ++i) {
 		//if (textures[i] != 0) {
@@ -671,15 +688,22 @@ void end2D() {
 	stopShader();
 }
 
-void setStretchMode(BMTStretchMode mode) {
+void setStretchMode(StretchMode mode) {
 	BMT_stretch_mode = mode;
 }
 
-void setAspectMode(BMTAspectMode mode) {
+void setAspectMode(AspectMode mode) {
 	BMT_aspect_mode = mode;
 }
 
+Rect getViewportRect() {
+	return BMT_viewport_rect;
+}
+
+INTERNAL 
 void limitViewportToAspectRatio(float aspect, float screen_width, float screen_height) {
+	if (aspect == 0) aspect == 1;
+
 	int new_width = screen_width;
 	int new_height = (int)(screen_width / aspect);
 	if (new_height > screen_height) {
@@ -687,6 +711,7 @@ void limitViewportToAspectRatio(float aspect, float screen_width, float screen_h
 		new_width = (int)(screen_height * aspect);
 	}
 	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	BMT_viewport_rect = Rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
 }
 
 void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height) {
@@ -694,8 +719,20 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 
 	if (BMT_stretch_mode == STRETCH_NONE) {
 		BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
-		glViewport(x, y, width, height);
-		//if there is no stretching, ignore aspect ratio.
+		BMT_viewport_rect = Rect(x, y, width, height);
+		if (BMT_aspect_mode == ASPECT_NONE) {
+			glViewport(x, y, width, height);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP) {
+			float aspect = (float)virtual_width / (float)virtual_height;
+			limitViewportToAspectRatio(aspect, width, height);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP_WIDTH) {
+
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP_HEIGHT) {
+
+		}
 	}
 
 	//TODO: Fix projection stretch
@@ -721,6 +758,14 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 			glViewport(x, y, width, height);
 		}
 		if (BMT_aspect_mode == ASPECT_KEEP) {
+			float aspect = (float)virtual_width / (float)virtual_height;
+			limitViewportToAspectRatio(aspect, width, height);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP_WIDTH) {
+			float aspect = (float)virtual_width / (float)virtual_height;
+			limitViewportToAspectRatio(aspect, width, height);
+		}
+		if (BMT_aspect_mode == ASPECT_KEEP_HEIGHT) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}

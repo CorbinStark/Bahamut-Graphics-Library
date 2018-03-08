@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -29,6 +30,7 @@
 
 #include <iostream>
 
+INTERNAL
 Character* getChar(Font& font, const GLchar c) {
 	try {
 		return font.characters[c];
@@ -38,6 +40,7 @@ Character* getChar(Font& font, const GLchar c) {
 	}
 }
 
+INTERNAL
 float getFontHeight(Font& font) {
 	return getChar(font, 'T')->bearing.y + (getChar(font, 'T')->size.y / 2);
 }

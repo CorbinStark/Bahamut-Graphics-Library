@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -29,6 +30,7 @@
 #define RENDER_TEXTURE_H
 
 #include <GL/glew.h>
+#include "defines.h"
 
 struct RenderTexture {
 	GLuint framebufferID;

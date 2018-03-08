@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -29,6 +30,7 @@
 #define UTILS_H
 
 #include "vec2f.h"
+#include "defines.h"
 
 void inline swap(int& a, int& b) {
 	int c = b;

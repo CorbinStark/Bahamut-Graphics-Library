@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -33,19 +34,7 @@
 #include "font.h"
 #include "rectangle.h"
 #include "renderTexture.h"
-
-enum BMTStretchMode {
-	STRETCH_NONE,
-	STRETCH_PROJECTION,
-	STRETCH_VIEWPORT
-};
-
-enum BMTAspectMode {
-	ASPECT_NONE,
-	ASPECT_KEEP,
-	ASPECT_KEEP_WIDTH,
-	ASPECT_KEEP_HEIGHT
-};
+#include "defines.h"
 
 #define BATCH_MAX_SPRITES	    20000
 #define BATCH_VERTEX_SIZE	    sizeof(VertexData)
@@ -53,6 +42,19 @@ enum BMTAspectMode {
 #define BATCH_BUFFER_SIZE	    BATCH_SPRITE_SIZE * BATCH_MAX_SPRITES
 #define BATCH_INDICE_SIZE	    BATCH_MAX_SPRITES * 6
 #define BATCH_MAX_TEXTURES		16
+
+enum StretchMode {
+	STRETCH_NONE,
+	STRETCH_PROJECTION,
+	STRETCH_VIEWPORT
+};
+
+enum AspectMode {
+	ASPECT_NONE,
+	ASPECT_KEEP,
+	ASPECT_KEEP_WIDTH,
+	ASPECT_KEEP_HEIGHT
+};
 
 //==========================================================================================
 //Description: Initializes the 2D renderer with all the data it needs
@@ -64,9 +66,12 @@ enum BMTAspectMode {
 void init2D(int x, int y, int width, int height);
 //==========================================================================================
 //Description: Begins the renderer. You must do all draw calls in between
-//	begin2D and end2D. You can attach optionally a shader before calling begin2D 
+//	begin2D and end2D.
 //==========================================================================================
 void begin2D();
+void begin2D(mat4f projection);
+void begin2D(Shader shader);
+void begin2D(Shader shader, mat4f projection);
 //==========================================================================================
 //Description: Draws a texture onto the bound framebuffer (by default the window)
 //
@@ -108,8 +113,10 @@ void end2D();
 
 int submitTex(Texture& tex);
 
-void setStretchMode(BMTStretchMode mode);
-void setAspectMode(BMTAspectMode mode);
+void setStretchMode(StretchMode mode);
+void setAspectMode(AspectMode mode);
+
+Rect getViewportRect();
 
 void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height);
 void attachShader2D(Shader shader);

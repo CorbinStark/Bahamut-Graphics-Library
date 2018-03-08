@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -33,6 +34,7 @@
 #include <stdlib.h>
 #include <vector>
 #include "maths.h"
+#include "defines.h"
 
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32

@@ -4,6 +4,7 @@
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
 ///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2018 Corbin Stark                                       //
 //                                                                       //
 // Permission is hereby granted, free of charge, to any person obtaining //
 // a copy of this software and associated documentation files (the       //
@@ -68,8 +69,9 @@ struct BMTWindow {
 	void(*BMTMouseCallback)(double mousex, double mousey, int button, int action);
 	void(*BMTResizeCallback)(int width, int height);
 };
-static BMTWindow bmt_win;
+INTERNAL BMTWindow bmt_win;
 
+INTERNAL
 void rebuildState() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -77,6 +79,7 @@ void rebuildState() {
 }
 
 //TODO: implement the GUI into this engine.
+INTERNAL
 void keycallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
 	bmt_win.keys[key] = action;
 	if(bmt_win.BMTKeyCallback != NULL)
@@ -84,12 +87,14 @@ void keycallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
 	//Panel::key_callback_func(key, action);
 }
 
+INTERNAL
 void cursorPosCallback(GLFWwindow* win, double xPos, double yPos) {
 	bmt_win.mousex = xPos;
 	bmt_win.mousey = yPos;
 	//Panel::mouse_pos_callback_func(xPos, yPos);
 }
 
+INTERNAL
 void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
 	bmt_win.buttons[button] = action;
 	if (bmt_win.BMTMouseCallback != NULL)
@@ -97,12 +102,11 @@ void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
 	//Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
 }
 
+INTERNAL
 void resizeCallback(GLFWwindow* win, int width, int height) {
 	if (bmt_win.BMTResizeCallback != NULL)
 		bmt_win.BMTResizeCallback(width, height);
-	bmt_win.width = width;
-	bmt_win.height = height;
-	set2DRenderViewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
+	setWindowSize(width, height);
 }
 
 void initWindow(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
@@ -131,6 +135,9 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 	//END INIT GLFW
 
 	glfwWindowHint(GLFW_RESIZABLE, resizable);
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 	if (fullscreen) {
 		glfwWindowHint(GLFW_VISIBLE, false);
 		glfwWindowHint(GLFW_DECORATED, false);
@@ -367,7 +374,10 @@ void getMousePos(double* mousex, double* mousey) {
 }
 
 vec2f getMousePos() {
-	return vec2f(bmt_win.mousex, bmt_win.mousey);
+	return vec2f(
+		bmt_win.mousex,
+		bmt_win.mousey
+	);
 }
 
 void disposeWindow() {
