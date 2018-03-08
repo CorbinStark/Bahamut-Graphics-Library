@@ -30,10 +30,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <AL/alc.h>
+#include <AL/al.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define strtok_r strtok_s
 #endif
+
+//INTERNAL VARIABLES
+INTERNAL u8 master_volume;
 
 INTERNAL
 struct SoundData {
@@ -46,17 +51,18 @@ struct SoundData {
 
 INTERNAL
 SoundData loadWAV(const char* filename) {
-	SoundData data = { 0 };
+	SoundData data;
+
 	return data;
 }
 INTERNAL
 SoundData loadOGG(const char* filename) {
-	SoundData data = { 0 };
+	SoundData data;
 	return data;
 }
 INTERNAL
 SoundData loadFLAC(const char* filename) {
-	SoundData data = { 0 };
+	SoundData data;
 	return data;
 }
 
@@ -113,18 +119,91 @@ bool hasExtension(const char* filename, const char* extension) {
 	return answer;
 }
 
+void initAudio() {
+	ALCdevice *device = alcOpenDevice(NULL);
+
+	if (!device) 
+		BMT_LOG(FATAL_ERROR, "Could not open audio device!");
+	else {
+		ALCcontext *context = alcCreateContext(device, NULL);
+
+		if ((context == NULL) || (alcMakeContextCurrent(context) == ALC_FALSE)) {
+			if (context != NULL) alcDestroyContext(context);
+			alcCloseDevice(device);
+			BMT_LOG(FATAL_ERROR, "Could not initialize audio context!");
+		}
+		else {
+			BMT_LOG(INFO, "Audio device and context initialized successfully: %s", alcGetString(device, ALC_DEVICE_SPECIFIER));
+
+			alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
+			alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+			alListener3f(AL_ORIENTATION, 0.0f, 0.0f, -1.0f);
+			alListenerf(AL_GAIN, 1.0f);
+		}
+	}
+}
+
+void disposeAudio() {
+	ALCdevice *device;
+	ALCcontext *context = alcGetCurrentContext();
+
+	if (context == NULL) 
+		BMT_LOG(WARNING, "Could not get current audio context for closing.");
+
+	device = alcGetContextsDevice(context);
+
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(context);
+	alcCloseDevice(device);
+
+	BMT_LOG(INFO, "Audio device closed.");
+}
+
+void setMasterVolume(u8 volume) {
+	master_volume = volume;
+	alListenerf(AL_GAIN, (float)volume / 255.0f);
+}
+
+u8 getMasterVolume() {
+	return master_volume;
+}
+
 Sound loadSound(const char* filename) {
-	Sound sound = { 0 };
-	SoundData data = { 0 };
+	Sound sound;
+	SoundData data;
 
 	if (hasExtension(filename, "wav"))       data = loadWAV(filename);
 	else if (hasExtension(filename, "ogg"))  data = loadOGG(filename);
 	else if (hasExtension(filename, "flac")) data = loadFLAC(filename);
 	else {
-		BMT_LOG(WARNING, "[%s] Extension not supported!", filename);
+		BMT_LOG(FATAL_ERROR, "[%s] Extension not supported!", filename);
 	}
 
+	sound.format = 0;
+	if (data.channels == 1) {
+		if (data.sampleSize == 8)       sound.format = AL_FORMAT_MONO8;
+		else if (data.sampleSize == 16) sound.format = AL_FORMAT_MONO16;
+		else BMT_LOG(WARNING, "Sample size not supported: %i", data.sampleSize);
+	}
+	else if (data.channels == 2) {
+		if (data.sampleSize == 8)       sound.format = AL_FORMAT_STEREO8;
+		else if (data.sampleSize == 16) sound.format = AL_FORMAT_STEREO16;
+		else BMT_LOG(WARNING, "Sample size not supported: %i", data.sampleSize);
+	}
+	else
+		BMT_LOG(WARNING, "Only MONO and STEREO channels are supported.");
 
+	alGenSources(1, &sound.src);
+	alSourcef(sound.src, AL_PITCH, 1.0f);
+	alSourcef(sound.src, AL_GAIN, 1.0f);
+	alSource3f(sound.src, AL_POSITION, 0.0f, 0.0f, 0.0f);
+	alSource3f(sound.src, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+	alSourcei(sound.src, AL_LOOPING, AL_FALSE);
+
+	alGenBuffers(1, &sound.buffer);
+	u32 buffer_size = data.channels * data.sampleCount * data.sampleSize / 8;
+	alBufferData(sound.buffer, sound.format, data.data, buffer_size, data.sampleRate);
+	alSourcei(sound.src, AL_BUFFER, sound.buffer);
 
 	return sound;
 }

@@ -57,8 +57,9 @@
 #include <cstdlib>
 #define FATAL_ERROR 0
 #define MINOR_ERROR 1
-#define WARNING 2
-#define DEBUG 3
+#define INFO 2
+#define WARNING 3
+#define DEBUG 4
 
 //TODO: have this saved to file too (possibly only while in debug mode)
 INTERNAL
@@ -66,6 +67,7 @@ void BMT_LOG(u8 TYPE, const char* format, ...) {
 	switch (TYPE) {
 	case FATAL_ERROR: fprintf(stderr, "FATAL ERROR: "); break;
 	case MINOR_ERROR: fprintf(stderr, "ERROR: ");       break;
+	case INFO:        fprintf(stderr, "INFO: ");        break;
 	case WARNING:     fprintf(stderr, "WARNING: ");     break;
 	case DEBUG:       fprintf(stderr, "DEBUG: ");       break;
 	default:          break;
