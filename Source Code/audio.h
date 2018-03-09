@@ -47,11 +47,14 @@ u8 getMasterVolume();
 Sound loadSound(const char* filename);
 
 bool isSoundPlaying(Sound sound);
-void setSoundVolume(Sound sound, float volume);
+bool isSoundPaused(Sound sound);
+bool isSoundStopped(Sound sound);
+void setSoundVolume(Sound sound, u8 volume);
 void playSound(Sound sound);
 void stopSound(Sound sound);
 void pauseSound(Sound sound);
 void resumeSound(Sound sound);
+void setSoundLooping(Sound sound, bool loop);
 
 void disposeSound(Sound& sound);
 

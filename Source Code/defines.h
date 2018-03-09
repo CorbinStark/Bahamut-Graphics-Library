@@ -83,6 +83,48 @@ void BMT_LOG(u8 TYPE, const char* format, ...) {
 	if (TYPE == FATAL_ERROR) exit(1);
 }
 
+#include <string.h>
+#if defined(_WIN32) || defined(_WIN64)
+#define strtok_r strtok_s
+#endif
+
+INTERNAL
+char *duplicateString(const char *s) {
+	char *d = (char*)malloc(strlen(s) + 1);
+	if (d == NULL) return NULL;
+	strcpy(d, s);
+	return d;
+}
+
+INTERNAL
+char** splitString(const char* string, const char* seperator, u32* numTokens) {
+	char** tokens;
+	char* s = duplicateString(string);
+
+	u32 tokens_allocated = 1;
+	u32 tokens_used = 0;
+	tokens = (char**)calloc(tokens_allocated, sizeof(char*));
+	char* token;
+	char* strtok_ctx;
+	for (token = strtok_r(s, seperator, &strtok_ctx); token != NULL; token = strtok_r(NULL, seperator, &strtok_ctx)) {
+		if (tokens_used == tokens_allocated) {
+			tokens_allocated *= 2;
+			tokens = (char**)realloc(tokens, tokens_allocated * sizeof(char*));
+		}
+		tokens[tokens_used++] = duplicateString(token);
+	}
+	if (tokens_used == 0) {
+		free(tokens);
+		tokens = NULL;
+	}
+	else {
+		tokens = (char**)realloc(tokens, tokens_used * sizeof(char*));
+	}
+	*numTokens = tokens_used;
+	free(s);
+	return tokens;
+}
+
 #ifndef BMT_ASSERT
 #include <assert.h>
 #define BMT_ASSERT(expr) assert(expr)

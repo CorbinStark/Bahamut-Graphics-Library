@@ -33,35 +33,28 @@
 #include "defines.h"
 
 struct Sound {
-	GLuint source;
+	GLuint src;
 	GLuint buffer;
 	GLint format;
 };
 
-struct AudioStream {
-	GLuint sampleRate;
-	GLuint sampleSize;
-	GLuint channels;
+void initAudio();
+void disposeAudio();
 
-	GLint format;
-	GLuint source;
-	GLuint buffers[2];
-};
-
-void setMasterVolume(float volume);
-float getMasterVolume();
+void setMasterVolume(u8 volume);
+u8 getMasterVolume();
 
 Sound loadSound(const char* filename);
 
-void setSoundData(Sound& sound, const void* data, GLint samplesCount);
-
+bool isSoundPlaying(Sound sound);
+bool isSoundPaused(Sound sound);
+bool isSoundStopped(Sound sound);
+void setSoundVolume(Sound sound, u8 volume);
 void playSound(Sound sound);
+void stopSound(Sound sound);
 void pauseSound(Sound sound);
 void resumeSound(Sound sound);
-void stopSound(Sound sound);
-bool isSoundPlaying(Sound sound);
-void setSoundVolume(Sound sound, float volume);
-void setSoundPitch(Sound sound, float pitch);
+void setSoundLooping(Sound sound, bool loop);
 
 void disposeSound(Sound& sound);
 

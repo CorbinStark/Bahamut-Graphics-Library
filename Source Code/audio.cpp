@@ -27,80 +27,82 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "audio.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <AL/alc.h>
 #include <AL/al.h>
-
-#if defined(_WIN32) || defined(_WIN64)
-#define strtok_r strtok_s
-#endif
 
 //INTERNAL VARIABLES
 INTERNAL u8 master_volume;
 
 INTERNAL
 struct SoundData {
-	GLuint sampleCount;
-	GLuint sampleRate;
-	GLuint sampleSize;
-	GLuint channels;
+	u32 sampleCount;
+	u32 sampleRate;
+	u32 sampleSize;
+	u8 channels;
 	void* data;
 };
 
 INTERNAL
 SoundData loadWAV(const char* filename) {
-	SoundData data;
+	SoundData data = { 0 };
+	struct WAVE_HEADER {
+		u8  RIFF[4];
+		u32 chunkSize;
+		u8  WAVE[4];
+		u8  fmt[4];
+		u32 subChunk1Size;
+		u16 audioFormat;
+		u16 numOfChannels;
+		u32 samplesPerSecond;
+		u32 bytesPerSecond;
+		u16 blockAlign;
+		u16 bitsPerSample;
+		u8  subChunk2ID[4];
+		u32 subChunk2Size;
+	};
+	WAVE_HEADER header;
+
+	FILE* file;
+	file = fopen(filename, "rb");
+	if (file == NULL) {
+		BMT_LOG(WARNING, "[%s] Could not open .wav file.", filename);
+		return data;
+	}
+	u32 read = 0;
+	read = fread(&header, 1, sizeof(WAVE_HEADER), file);
+	if (read == 0) {
+		BMT_LOG(WARNING, "[%s] Could not read the .wav file!", filename);
+		return data;
+	}
+	data.channels = header.numOfChannels;
+	data.sampleRate = header.samplesPerSecond;
+	data.sampleSize = header.bitsPerSample;
+	data.sampleCount = (header.subChunk2Size / (data.sampleSize / 8) / data.channels);
+	data.data = malloc(header.subChunk2Size);
+	fread(data.data, header.subChunk2Size, 1, file);
+
+	fclose(file);
 
 	return data;
 }
+
 INTERNAL
 SoundData loadOGG(const char* filename) {
-	SoundData data;
+	SoundData data = { 0 };
 	return data;
 }
+
 INTERNAL
 SoundData loadFLAC(const char* filename) {
-	SoundData data;
+	SoundData data = { 0 };
 	return data;
 }
 
 INTERNAL
-char *duplicateString(const char *s) {
-	char *d = (char*)malloc(strlen(s) + 1);
-	if (d == NULL) return NULL;
-	strcpy(d, s);
-	return d;
-}
-
-INTERNAL
-char** splitString(const char* string, const char* seperator, u32* numTokens) {
-	char** tokens;
-	char* s = duplicateString(string);
-
-	u32 tokens_allocated = 1;
-	u32 tokens_used = 0;
-	tokens = (char**)calloc(tokens_allocated, sizeof(char*));
-	char* token;
-	char* strtok_ctx;
-	for (token = strtok_r(s, seperator, &strtok_ctx); token != NULL; token = strtok_r(NULL, seperator, &strtok_ctx)) {
-		if (tokens_used == tokens_allocated) {
-			tokens_allocated *= 2;
-			tokens = (char**)realloc(tokens, tokens_allocated * sizeof(char*));
-		}
-		tokens[tokens_used++] = duplicateString(token);
-	}
-	if (tokens_used == 0) {
-		free(tokens);
-		tokens = NULL;
-	}
-	else {
-		tokens = (char**)realloc(tokens, tokens_used * sizeof(char*));
-	}
-	*numTokens = tokens_used;
-	free(s);
-	return tokens;
+SoundData loadMP3(const char* filename) {
+	SoundData data = { 0 };
+	return data;
 }
 
 INTERNAL
@@ -113,7 +115,7 @@ bool hasExtension(const char* filename, const char* extension) {
 	for (u8 i = 0; i < numTokens; ++i)
 		if (tokens[i] != NULL)
 			free(tokens[i]);
-	if(tokens != NULL)
+	if (tokens != NULL)
 		free(tokens);
 
 	return answer;
@@ -122,7 +124,7 @@ bool hasExtension(const char* filename, const char* extension) {
 void initAudio() {
 	ALCdevice *device = alcOpenDevice(NULL);
 
-	if (!device) 
+	if (!device)
 		BMT_LOG(FATAL_ERROR, "Could not open audio device!");
 	else {
 		ALCcontext *context = alcCreateContext(device, NULL);
@@ -147,7 +149,7 @@ void disposeAudio() {
 	ALCdevice *device;
 	ALCcontext *context = alcGetCurrentContext();
 
-	if (context == NULL) 
+	if (context == NULL)
 		BMT_LOG(WARNING, "Could not get current audio context for closing.");
 
 	device = alcGetContextsDevice(context);
@@ -156,7 +158,8 @@ void disposeAudio() {
 	alcDestroyContext(context);
 	alcCloseDevice(device);
 
-	BMT_LOG(INFO, "Audio device closed.");
+	if(context != NULL)
+		BMT_LOG(INFO, "Audio device closed.");
 }
 
 void setMasterVolume(u8 volume) {
@@ -175,8 +178,9 @@ Sound loadSound(const char* filename) {
 	if (hasExtension(filename, "wav"))       data = loadWAV(filename);
 	else if (hasExtension(filename, "ogg"))  data = loadOGG(filename);
 	else if (hasExtension(filename, "flac")) data = loadFLAC(filename);
+	else if (hasExtension(filename, "mp3"))  data = loadMP3(filename);
 	else {
-		BMT_LOG(FATAL_ERROR, "[%s] Extension not supported!", filename);
+		BMT_LOG(WARNING, "[%s] Extension not supported!", filename);
 	}
 
 	sound.format = 0;
@@ -206,4 +210,54 @@ Sound loadSound(const char* filename) {
 	alSourcei(sound.src, AL_BUFFER, sound.buffer);
 
 	return sound;
+}
+
+void playSound(Sound sound) {
+	alSourcePlay(sound.src);
+}
+
+void stopSound(Sound sound) {
+	alSourceStop(sound.src);
+}
+
+bool isSoundPlaying(Sound sound) {
+	ALint state;
+	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
+	return state == AL_PLAYING;
+}
+
+bool isSoundPaused(Sound sound) {
+	ALint state;
+	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
+	return state == AL_PAUSED;
+}
+
+bool isSoundStopped(Sound sound) {
+	ALint state;
+	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
+	return state == AL_STOPPED;
+}
+
+void setSoundVolume(Sound sound, u8 volume) {
+	alSourcef(sound.src, AL_GAIN, (float)volume / 255.0f);
+}
+
+void pauseSound(Sound sound) {
+	alSourcePause(sound.src);
+}
+
+void resumeSound(Sound sound) {
+	ALint state;
+	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
+	if (state == AL_PAUSED) playSound(sound);
+}
+
+void setSoundLooping(Sound sound, bool loop) {
+	alSourcei(sound.src, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+}
+
+void disposeSound(Sound& sound) {
+	alDeleteSources(1, &sound.src);
+	alDeleteBuffers(1, &sound.buffer);
+	sound.format = 0;
 }
