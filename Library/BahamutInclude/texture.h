@@ -38,23 +38,23 @@ const int FLIP_HORIZONTAL = 1;
 const int FLIP_VERTICAL = 2;
 
 struct Texture {
-	GLuint ID = 0;
+	GLuint ID;
 	unsigned long flip_flag;
 	int width;
 	int height;
 };
 
-Texture createBlankTexture(int width = 0, int height = 0);
-Texture loadTexture(unsigned char* pixels, int width, int height, int param);
-Texture loadTexture(std::string filepath, int param);
+Texture createBlankTexture(u32 width = 0, u32 height = 0);
+Texture loadTexture(unsigned char* pixels, u32 width, u32 height, u16 param);
+Texture loadTexture(const char* filepath, u16 param);
 void disposeTexture(Texture& texture);
 
 void blitTexture(Texture& src, Texture& dest, Rect drawFrom, Rect drawTo);
 
-void setTexturePixels(Texture& texture, unsigned char* pixels, int width, int height);
-void setTexturePixelsFromFile(Texture& texture, std::string filepath);
+void setTexturePixels(Texture& texture, unsigned char* pixels, u32 width, u32 height);
+void setTexturePixelsFromFile(Texture& texture, const char* filepath);
 
-void bindTexture(Texture& texture, unsigned int slot);
-void unbindTexture(unsigned int slot);
+void bindTexture(Texture& texture, u32 slot);
+void unbindTexture(u32 slot);
 
 #endif
