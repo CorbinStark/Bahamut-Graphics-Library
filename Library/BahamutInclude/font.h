@@ -54,6 +54,17 @@ Texture createTextureFromString(Font& font, const std::string str, GLubyte r = 0
 Font loadFont(const GLchar* filepath, unsigned int size);
 void disposeFont(Font& font);
 
+inline const u32 getStringWidth(Font& font, const char* str) {
+	u32 len = strlen(str);
+	u32 width = 0;
+	for (u32 i = 0; i < len; ++i) {
+		if (str[i] == '\n') return width;
+		width += font.characters[str[i]]->texture.width;
+	}
+	width += font.characters['c']->texture.width;
+	return width;
+}
+
 //text must be less than 128 chars long.
 inline const char* formatText(const char* text, ...) {
 	static char buffer[MAX_FORMAT_TEXT_SIZE];

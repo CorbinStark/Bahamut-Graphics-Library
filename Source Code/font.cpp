@@ -51,11 +51,15 @@ Font loadFont(const GLchar* filepath, unsigned int size) {
 	//load lib
 	if (FT_Init_FreeType(&font.ft)) {
 		printf("Could not initialize FreeType font\n");
+		font = { 0 };
+		return font;
 	}
 
 	//load face
 	if (FT_New_Face(font.ft, filepath, 0, &font.face)) {
 		printf("Failed to load font '%s'\n", filepath);
+		font = { 0 };
+		return font;
 	}
 	FT_Set_Pixel_Sizes(font.face, 0, size);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -98,8 +102,8 @@ Font loadFont(const GLchar* filepath, unsigned int size) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		character->size = vec2f(font.face->glyph->bitmap.width, font.face->glyph->bitmap.rows);
-		character->bearing = vec2f(font.face->glyph->bitmap_left, font.face->glyph->bitmap_top);
+		character->size = vec2f((float)font.face->glyph->bitmap.width, (float)font.face->glyph->bitmap.rows);
+		character->bearing = vec2f((float)font.face->glyph->bitmap_left, (float)font.face->glyph->bitmap_top);
 		character->advance = font.face->glyph->advance.x;
 
 		free(pixels);

@@ -31,15 +31,6 @@
 #include "audio.h"
 #include <iostream>
 #include <thread>
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-#if defined(__LINUX__)
-#include <unistd.h>
-#endif
-#if defined(__APPLE__)
-#include <unistd.h>
-#endif
 
 struct BMTWindow {
 	GLFWwindow* glfw_window;
@@ -49,8 +40,8 @@ struct BMTWindow {
 	int height;
 	int virtual_width;
 	int virtual_height;
-	int mousex;
-	int mousey;
+	double mousex;
+	double mousey;
 
 	bool hidden;
 	bool locked;
@@ -167,12 +158,14 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 		}
 		bmt_win.x = bmt_win.y = 0;
 
-		float scrWidth = glfwGetVideoMode(glfwGetPrimaryMonitor())->width;
-		float scrHeight = glfwGetVideoMode(glfwGetPrimaryMonitor())->height;
+		float scrWidth = (float)glfwGetVideoMode(glfwGetPrimaryMonitor())->width;
+		float scrHeight = (float)glfwGetVideoMode(glfwGetPrimaryMonitor())->height;
 
-		glfwSetWindowPos(bmt_win.glfw_window, (scrWidth / 2) - (width / 2), (scrHeight / 2) - (height / 2));
+		glfwSetWindowPos(bmt_win.glfw_window, (int)((scrWidth / 2) - (width / 2)), (int)((scrHeight / 2) - (height / 2)));
 		if (!primary_monitor)
-			glfwSetWindowPos(bmt_win.glfw_window, glfwGetVideoMode(glfwGetPrimaryMonitor())->width + (scrWidth / 2) - (width / 2), (scrHeight / 2) - (height / 2));
+			glfwSetWindowPos(bmt_win.glfw_window, (int)(glfwGetVideoMode(glfwGetPrimaryMonitor())->width + (scrWidth / 2) - (width / 2)),
+			(int)((scrHeight / 2) - (height / 2))
+		);
 	}
 
 	//INIT GLEW
@@ -261,8 +254,8 @@ void endDrawing() {
 #if defined(_BUSY_WAIT)
 		// Busy wait loop
 		while ((bmt_win.nextTime - bmt_win.prevTime) < ((bmt_win.targetTime - bmt_win.frameTime)*1000.0f) / 1000.0f) bmt_win.nextTime = glfwGetTime();
-#elif defined(_WIN32)
-		Sleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
+#elif defined(_WIN32) || defined(_WIN64)
+		Sleep((DWORD)((bmt_win.targetTime - bmt_win.frameTime)*1000.0f));
 #elif defined(__LINUX__)
 		usleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
 #elif defined(__APPLE__)
@@ -373,13 +366,15 @@ void setVSync(bool vsync) {
 void getMousePos(double* mousex, double* mousey) {
 	*mousex = bmt_win.mousex;
 	*mousey = bmt_win.mousey;
+	*mousex *= (float)bmt_win.virtual_width / (float)bmt_win.width;
+	*mousey *= (float)bmt_win.virtual_height / (float)bmt_win.height;
 }
 
 vec2f getMousePos() {
-	return vec2f(
-		bmt_win.mousex,
-		bmt_win.mousey
-	);
+	vec2f mouse_pos = vec2f((float)bmt_win.mousex, (float)bmt_win.mousey);
+	vec2f scale = vec2f((float)(bmt_win.virtual_width) / (float)(bmt_win.width), (float)(bmt_win.virtual_height) / (float)(bmt_win.height));
+	mouse_pos = mouse_pos * scale;
+	return mouse_pos;
 }
 
 void disposeWindow() {
@@ -405,7 +400,7 @@ int getVirtualHeight() {
 }
 
 vec2f getVirtualSize() {
-	return vec2f(bmt_win.virtual_width, bmt_win.virtual_height);
+	return vec2f((float)bmt_win.virtual_width, (float)bmt_win.virtual_height);
 }
 
 int getWindowWidth() {

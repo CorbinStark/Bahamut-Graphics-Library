@@ -33,13 +33,13 @@
 
 //INTERNAL VARIABLES
 INTERNAL u8 master_volume;
+INTERNAL ALCcontext* context;
 
-INTERNAL
 struct SoundData {
 	u32 sampleCount;
 	u32 sampleRate;
 	u32 sampleSize;
-	u8 channels;
+	u16 channels;
 	void* data;
 };
 
@@ -123,43 +123,36 @@ bool hasExtension(const char* filename, const char* extension) {
 
 void initAudio() {
 	ALCdevice *device = alcOpenDevice(NULL);
-
 	if (!device)
 		BMT_LOG(FATAL_ERROR, "Could not open audio device!");
+
+	context = alcCreateContext(device, NULL);
+	if (context == NULL) {
+		alcCloseDevice(device);
+		BMT_LOG(FATAL_ERROR, "Could not initialize audio context!");
+	}
+
 	else {
-		ALCcontext *context = alcCreateContext(device, NULL);
+		BMT_LOG(INFO, "Audio device initialized.");
 
-		if ((context == NULL) || (alcMakeContextCurrent(context) == ALC_FALSE)) {
-			if (context != NULL) alcDestroyContext(context);
-			alcCloseDevice(device);
-			BMT_LOG(FATAL_ERROR, "Could not initialize audio context!");
-		}
-		else {
-			BMT_LOG(INFO, "Audio device and context initialized successfully: %s", alcGetString(device, ALC_DEVICE_SPECIFIER));
-
-			alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
-			alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-			alListener3f(AL_ORIENTATION, 0.0f, 0.0f, -1.0f);
-			alListenerf(AL_GAIN, 1.0f);
-		}
+		alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+		alListenerf(AL_GAIN, 1.0f);
+		alListener3f(AL_ORIENTATION, 0.0f, 0.0f, -1.0f);
+		alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
 	}
 }
 
 void disposeAudio() {
-	ALCdevice *device;
-	ALCcontext *context = alcGetCurrentContext();
+	ALCdevice *device = alcGetContextsDevice(context);
 
 	if (context == NULL)
 		BMT_LOG(WARNING, "Could not get current audio context for closing.");
 
-	device = alcGetContextsDevice(context);
-
-	alcMakeContextCurrent(NULL);
 	alcDestroyContext(context);
 	alcCloseDevice(device);
+	alcMakeContextCurrent(NULL);
 
-	if(context != NULL)
-		BMT_LOG(INFO, "Audio device closed.");
+	BMT_LOG(INFO, "Audio device disposed.");
 }
 
 void setMasterVolume(u8 volume) {

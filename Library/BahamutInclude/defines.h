@@ -262,11 +262,15 @@ char** splitString(const char* string, const char* seperator, u32* numTokens) {
 #define KEY_MENU               348
 #define KEY_LAST               GLFW_KEY_MENU
 
+#ifndef MOD_SHIFT
 #define MOD_SHIFT           0x0001
+#endif
 
 #define MOD_CONTROL         0x0002
 
+#ifndef MOD_ALT
 #define MOD_ALT             0x0004
+#endif
 
 #define MOD_SUPER           0x0008
 

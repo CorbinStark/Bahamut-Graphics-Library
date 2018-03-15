@@ -31,42 +31,42 @@
 #include "window.h"
 #include <GL/glew.h>
 
-INTERNAL GLuint BMT_vao;
-INTERNAL GLuint BMT_vbo;
-INTERNAL GLuint BMT_ebo;
-INTERNAL unsigned short BMT_indexcount;
-INTERNAL unsigned short BMT_texcount;
-INTERNAL GLuint BMT_textures[BATCH_MAX_TEXTURES];
-INTERNAL GLchar* BMT_locations[BATCH_MAX_TEXTURES];
-INTERNAL VertexData* BMT_buffer;
+INTERNAL GLuint vao;
+INTERNAL GLuint vbo;
+INTERNAL GLuint ebo;
+INTERNAL unsigned short indexcount;
+INTERNAL unsigned short texcount;
+INTERNAL GLuint  textures[BATCH_MAX_TEXTURES];
+INTERNAL GLchar* locations[BATCH_MAX_TEXTURES];
+INTERNAL VertexData* buffer;
 
-INTERNAL StretchMode BMT_stretch_mode;
-INTERNAL AspectMode BMT_aspect_mode;
+INTERNAL StretchMode stretch_mode;
+INTERNAL AspectMode aspect_mode;
 
-INTERNAL Shader BMT_shader;
-INTERNAL mat4f BMT_ortho_projection;
-INTERNAL mat4f BMT_custom_projection;
-INTERNAL bool BMT_using_custom_projection;
+INTERNAL Shader shader;
+INTERNAL mat4f ortho_projection;
+INTERNAL mat4f custom_projection;
+INTERNAL bool using_custom_projection;
 
-INTERNAL Rect BMT_viewport_rect;
+INTERNAL Rect viewport_rect;
 
 INTERNAL
-GLfloat BMT_DEFAULT_UVS[8] = {
+GLfloat DEFAULT_UVS[8] = {
 	0, 0, 0, 1,
 	1, 1, 1, 0
 };
 INTERNAL 
-GLfloat BMT_FLIP_HORIZONTAL_UVS[8] = {
+GLfloat FLIP_HORIZONTAL_UVS[8] = {
 	1, 0, 1, 1,
 	0, 1, 0, 0
 };
 INTERNAL 
-GLfloat BMT_FLIP_VERTICAL_UVS[8] = {
+GLfloat FLIP_VERTICAL_UVS[8] = {
 	0, 1, 0, 0,
 	1, 0, 1, 1
 };
 INTERNAL 
-GLfloat BMT_FLIP_BOTH_UVS[8] = {
+GLfloat FLIP_BOTH_UVS[8] = {
 	1, 1, 1, 0,
 	0, 0, 0, 1
 };
@@ -75,69 +75,69 @@ INTERNAL
 int submitTex(Texture& tex) {
 	int texSlot = 0;
 	bool found = false;
-	for (int i = 0; i < BMT_texcount; ++i) {
-		if (BMT_textures[i] == tex.ID) {
+	for (int i = 0; i < texcount; ++i) {
+		if (textures[i] == tex.ID) {
 			texSlot = (i + 1);
 			found = true;
 			break;
 		}
 	}
 	if (!found) {
-		if (BMT_texcount >= BATCH_MAX_TEXTURES) {
+		if (texcount >= BATCH_MAX_TEXTURES) {
 			end2D();
 			begin2D();
 		}
-		BMT_textures[BMT_texcount++] = tex.ID;
-		texSlot = BMT_texcount;
+		textures[texcount++] = tex.ID;
+		texSlot = texcount;
 	}
 	return texSlot;
 }
 
 void init2D(int x, int y, int width, int height) {
-	BMT_stretch_mode = STRETCH_NONE;
-	BMT_aspect_mode = ASPECT_NONE;
+	stretch_mode = STRETCH_NONE;
+	aspect_mode = ASPECT_NONE;
 	set2DRenderViewport(x, y, width, height, getVirtualWidth(), getVirtualHeight());
-	BMT_texcount = BMT_indexcount = 0;
+	texcount = indexcount = 0;
 
 	//LOAD SHADER - CUSTOM LOAD BECAUSE ATTRIB LOCATIONS MUST BE BOUND MANUALLY TO SUPPORT EARLIER VERSIONS
-	BMT_shader.vertexshaderID = loadShaderString(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
-	BMT_shader.fragshaderID = loadShaderString(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
-	BMT_shader.programID = glCreateProgram();
-	glAttachShader(BMT_shader.programID, BMT_shader.vertexshaderID);
-	glAttachShader(BMT_shader.programID, BMT_shader.fragshaderID);
-	glBindFragDataLocation(BMT_shader.programID, 0, "outColor");
-	glBindAttribLocation(BMT_shader.programID, 0, "position");
-	glBindAttribLocation(BMT_shader.programID, 1, "color");
-	glBindAttribLocation(BMT_shader.programID, 2, "uv");
-	glBindAttribLocation(BMT_shader.programID, 3, "texid");
-	glLinkProgram(BMT_shader.programID);
-	glValidateProgram(BMT_shader.programID);
+	shader.vertexshaderID = loadShaderString(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
+	shader.fragshaderID = loadShaderString(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
+	shader.programID = glCreateProgram();
+	glAttachShader(shader.programID, shader.vertexshaderID);
+	glAttachShader(shader.programID, shader.fragshaderID);
+	glBindFragDataLocation(shader.programID, 0, "outColor");
+	glBindAttribLocation(shader.programID, 0, "position");
+	glBindAttribLocation(shader.programID, 1, "color");
+	glBindAttribLocation(shader.programID, 2, "uv");
+	glBindAttribLocation(shader.programID, 3, "texid");
+	glLinkProgram(shader.programID);
+	glValidateProgram(shader.programID);
 	glUseProgram(0);
 	for (int i = 0; i < BATCH_MAX_TEXTURES; ++i)
-		BMT_textures[i] = 0;
+		textures[i] = 0;
 
-	BMT_locations[0] = "tex1";
-	BMT_locations[1] = "tex2";
-	BMT_locations[2] = "tex3";
-	BMT_locations[3] = "tex4";
-	BMT_locations[4] = "tex5";
-	BMT_locations[5] = "tex6";
-	BMT_locations[6] = "tex7";
-	BMT_locations[7] = "tex8";
-	BMT_locations[8] = "tex9";
-	BMT_locations[9] = "tex10";
-	BMT_locations[10] = "tex11";
-	BMT_locations[11] = "tex12";
-	BMT_locations[12] = "tex13";
-	BMT_locations[13] = "tex14";
-	BMT_locations[14] = "tex15";
-	BMT_locations[15] = "tex16";
+	locations[0] = "tex1";
+	locations[1] = "tex2";
+	locations[2] = "tex3";
+	locations[3] = "tex4";
+	locations[4] = "tex5";
+	locations[5] = "tex6";
+	locations[6] = "tex7";
+	locations[7] = "tex8";
+	locations[8] = "tex9";
+	locations[9] = "tex10";
+	locations[10] = "tex11";
+	locations[11] = "tex12";
+	locations[12] = "tex13";
+	locations[13] = "tex14";
+	locations[14] = "tex15";
+	locations[15] = "tex16";
 
-	glGenVertexArrays(1, &BMT_vao);
-	glBindVertexArray(BMT_vao);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
-	glGenBuffers(1, &BMT_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, BMT_vbo);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, BATCH_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
 	//the last argument to glVertexAttribPointer is the offset from the start of the vertex to the
@@ -161,8 +161,8 @@ void init2D(int x, int y, int width, int height) {
 		offset += 4;
 	}
 
-	glGenBuffers(1, &BMT_ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BMT_ebo);
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, BATCH_INDICE_SIZE * sizeof(GLushort), indices, GL_STATIC_DRAW);
 
 	//the vao must be unbound before the buffers
@@ -171,15 +171,15 @@ void init2D(int x, int y, int width, int height) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 void begin2D() {
-	glBindBuffer(GL_ARRAY_BUFFER, BMT_vbo);
-	BMT_buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 	);
 }
 
 void begin2D(mat4f projection) {
-	BMT_custom_projection = projection;
-	BMT_using_custom_projection = true;
+	custom_projection = projection;
+	using_custom_projection = true;
 	begin2D();
 }
 
@@ -189,59 +189,59 @@ void drawTexture(Texture& tex, int xPos, int yPos) {
 	int texSlot = submitTex(tex);
 	GLfloat* uvs;
 
-	uvs = BMT_DEFAULT_UVS;
+	uvs = DEFAULT_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_BOTH_UVS;
+		uvs = FLIP_BOTH_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL)
-		uvs = BMT_FLIP_HORIZONTAL_UVS;
+		uvs = FLIP_HORIZONTAL_UVS;
 	if (tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_VERTICAL_UVS;
+		uvs = FLIP_VERTICAL_UVS;
 
-	BMT_buffer->pos.x = xPos;
-	BMT_buffer->pos.y = yPos;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[0];
-	BMT_buffer->uv.y = uvs[1];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[0];
+	buffer->uv.y = uvs[1];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos;
-	BMT_buffer->pos.y = yPos + tex.height;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[2];
-	BMT_buffer->uv.y = uvs[3];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos + tex.height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[2];
+	buffer->uv.y = uvs[3];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos + tex.width;
-	BMT_buffer->pos.y = yPos + tex.height;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[4];
-	BMT_buffer->uv.y = uvs[5];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos + tex.width;
+	buffer->pos.y = yPos + tex.height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[4];
+	buffer->uv.y = uvs[5];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos + tex.width;
-	BMT_buffer->pos.y = yPos;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[6];
-	BMT_buffer->uv.y = uvs[7];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos + tex.width;
+	buffer->pos.y = yPos;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[6];
+	buffer->uv.y = uvs[7];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_indexcount += 6;
+	indexcount += 6;
 }
 void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, float a) {
 	if (tex.ID == 0)
@@ -255,59 +255,59 @@ void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, fl
 	int texSlot = submitTex(tex);
 	GLfloat* uvs;
 
-	uvs = BMT_DEFAULT_UVS;
+	uvs = DEFAULT_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_BOTH_UVS;
+		uvs = FLIP_BOTH_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL)
-		uvs = BMT_FLIP_HORIZONTAL_UVS;
+		uvs = FLIP_HORIZONTAL_UVS;
 	if (tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_VERTICAL_UVS;
+		uvs = FLIP_VERTICAL_UVS;
 
-	BMT_buffer->pos.x = xPos;
-	BMT_buffer->pos.y = yPos;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = uvs[0];
-	BMT_buffer->uv.y = uvs[1];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = uvs[0];
+	buffer->uv.y = uvs[1];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos;
-	BMT_buffer->pos.y = yPos + tex.height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = uvs[2];
-	BMT_buffer->uv.y = uvs[3];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos + tex.height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = uvs[2];
+	buffer->uv.y = uvs[3];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos + tex.width;
-	BMT_buffer->pos.y = yPos + tex.height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = uvs[4];
-	BMT_buffer->uv.y = uvs[5];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos + tex.width;
+	buffer->pos.y = yPos + tex.height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = uvs[4];
+	buffer->uv.y = uvs[5];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = xPos + tex.width;
-	BMT_buffer->pos.y = yPos;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = uvs[6];
-	BMT_buffer->uv.y = uvs[7];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = xPos + tex.width;
+	buffer->pos.y = yPos;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = uvs[6];
+	buffer->uv.y = uvs[7];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_indexcount += 6;
+	indexcount += 6;
 }
 void drawTextureRot(Texture& tex, int xPos, int yPos, float rotateDegree) {
 	float originX = xPos + (tex.width / 2);
@@ -320,13 +320,13 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotati
 	int texSlot = submitTex(tex);
 	GLfloat* uvs;
 
-	uvs = BMT_DEFAULT_UVS;
+	uvs = DEFAULT_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_BOTH_UVS;
+		uvs = FLIP_BOTH_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL)
-		uvs = BMT_FLIP_HORIZONTAL_UVS;
+		uvs = FLIP_HORIZONTAL_UVS;
 	if (tex.flip_flag & FLIP_VERTICAL)
-		uvs = BMT_FLIP_VERTICAL_UVS;
+		uvs = FLIP_VERTICAL_UVS;
 
 	float originX = origin.x;
 	float originY = origin.y;
@@ -348,57 +348,57 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotati
 
 	newX = xPos;
 	newY = yPos;
-	BMT_buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
-	BMT_buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[0];
-	BMT_buffer->uv.x = uvs[1];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
+	buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[0];
+	buffer->uv.x = uvs[1];
+	buffer->texid = texSlot;
+	buffer++;
 
 	newX = xPos;
 	newY = yPos + tex.height;
-	BMT_buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
-	BMT_buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[2];
-	BMT_buffer->uv.x = uvs[3];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
+	buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[2];
+	buffer->uv.x = uvs[3];
+	buffer->texid = texSlot;
+	buffer++;
 
 	newX = xPos + tex.width;
 	newY = yPos + tex.height;
-	BMT_buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
-	BMT_buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[4];
-	BMT_buffer->uv.x = uvs[5];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
+	buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[4];
+	buffer->uv.x = uvs[5];
+	buffer->texid = texSlot;
+	buffer++;
 
 	newX = xPos + tex.width;
 	newY = yPos;
-	BMT_buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
-	BMT_buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
-	BMT_buffer->color.x = 1; 
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[6];
-	BMT_buffer->uv.x = uvs[7];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
-
-	BMT_indexcount += 6;
+	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
+	buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
+	buffer->color.x = 1; 
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[6];
+	buffer->uv.x = uvs[7];
+	buffer->texid = texSlot;
+	buffer++;
+	
+	indexcount += 6;
 }
 void drawTextureEX(Texture& tex, Rect source, Rect dest) {
 	if (tex.ID == 0)
@@ -417,51 +417,51 @@ void drawTextureEX(Texture& tex, Rect source, Rect dest) {
 
 	int texSlot = submitTex(tex);
 
-	BMT_buffer->pos.x = dest.x;
-	BMT_buffer->pos.y = dest.y;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[0];
-	BMT_buffer->uv.y = uvs[1];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = dest.x;
+	buffer->pos.y = dest.y;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[0];
+	buffer->uv.y = uvs[1];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = dest.x;
-	BMT_buffer->pos.y = dest.y + dest.height;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[2];
-	BMT_buffer->uv.y = uvs[3];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = dest.x;
+	buffer->pos.y = dest.y + dest.height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[2];
+	buffer->uv.y = uvs[3];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = dest.x + dest.width;
-	BMT_buffer->pos.y = dest.y + dest.height;
-	BMT_buffer->color.x = 1;
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[4];
-	BMT_buffer->uv.y = uvs[5];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = dest.x + dest.width;
+	buffer->pos.y = dest.y + dest.height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[4];
+	buffer->uv.y = uvs[5];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_buffer->pos.x = dest.x + dest.width;
-	BMT_buffer->pos.y = dest.y;
-	BMT_buffer->color.x = 1; 
-	BMT_buffer->color.y = 1;
-	BMT_buffer->color.z = 1;
-	BMT_buffer->color.w = 1;
-	BMT_buffer->uv.x = uvs[6];
-	BMT_buffer->uv.y = uvs[7];
-	BMT_buffer->texid = texSlot;
-	BMT_buffer++;
+	buffer->pos.x = dest.x + dest.width;
+	buffer->pos.y = dest.y;
+	buffer->color.x = 1; 
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[6];
+	buffer->uv.y = uvs[7];
+	buffer->texid = texSlot;
+	buffer++;
 
-	BMT_indexcount += 6;
+	indexcount += 6;
 }
 void drawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
 	r /= 255.0f;
@@ -469,51 +469,51 @@ void drawRectangle(int x, int y, int width, int height, float r, float g, float 
 	b /= 255.0f;
 	a /= 255.0f;
 
-	BMT_buffer->pos.x = x;
-	BMT_buffer->pos.y = y;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 0.0f;
-	BMT_buffer->uv.y = 0.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x;
+	buffer->pos.y = y;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 0.0f;
+	buffer->uv.y = 0.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x;
-	BMT_buffer->pos.y = y + height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 0.0f;
-	BMT_buffer->uv.y = 1.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x;
+	buffer->pos.y = y + height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 0.0f;
+	buffer->uv.y = 1.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x + width;
-	BMT_buffer->pos.y = y + height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 1.0f;
-	BMT_buffer->uv.y = 1.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x + width;
+	buffer->pos.y = y + height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 1.0f;
+	buffer->uv.y = 1.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x + width;
-	BMT_buffer->pos.y = y;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 1.0f;
-	BMT_buffer->uv.y = 0.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x + width;
+	buffer->pos.y = y;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 1.0f;
+	buffer->uv.y = 0.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_indexcount += 6;
+	indexcount += 6;
 }
 void drawRectangle(int x, int y, int width, int height, vec4f& color) {
 	float r = color.x / 255.0f;
@@ -521,51 +521,51 @@ void drawRectangle(int x, int y, int width, int height, vec4f& color) {
 	float b = color.z / 255.0f;
 	float a = color.w / 255.0f;
 
-	BMT_buffer->pos.x = x;
-	BMT_buffer->pos.y = y;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 0.0f;
-	BMT_buffer->uv.y = 0.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x;
+	buffer->pos.y = y;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 0.0f;
+	buffer->uv.y = 0.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x;
-	BMT_buffer->pos.y = y + height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 0.0f;
-	BMT_buffer->uv.y = 1.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x;
+	buffer->pos.y = y + height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 0.0f;
+	buffer->uv.y = 1.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x + width;
-	BMT_buffer->pos.y = y + height;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 1.0f;
-	BMT_buffer->uv.y = 1.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x + width;
+	buffer->pos.y = y + height;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 1.0f;
+	buffer->uv.y = 1.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_buffer->pos.x = x + width;
-	BMT_buffer->pos.y = y;
-	BMT_buffer->color.x = r;
-	BMT_buffer->color.y = g;
-	BMT_buffer->color.z = b;
-	BMT_buffer->color.w = a;
-	BMT_buffer->uv.x = 1.0f;
-	BMT_buffer->uv.y = 0.0f;
-	BMT_buffer->texid = 0;
-	BMT_buffer++;
+	buffer->pos.x = x + width;
+	buffer->pos.y = y;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
+	buffer->uv.x = 1.0f;
+	buffer->uv.y = 0.0f;
+	buffer->texid = 0;
+	buffer++;
 
-	BMT_indexcount += 6;
+	indexcount += 6;
 }
 void drawText(Font& font, std::string str, int xPos, int yPos) {
 	for (int i = 0; i < str.size(); ++i) {
@@ -596,53 +596,53 @@ void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g,
 		Texture tex = font.characters[str[i]]->texture;
 		int texSlot = submitTex(tex);
 		GLfloat* uvs;
-		uvs = BMT_DEFAULT_UVS;
+		uvs = DEFAULT_UVS;
 
-		BMT_buffer->pos.x = x;
-		BMT_buffer->pos.y = y;
-		BMT_buffer->color.x = r;
-		BMT_buffer->color.y = g;
-		BMT_buffer->color.z = b;
-		BMT_buffer->color.w = 1;
-		BMT_buffer->uv.x = uvs[0];
-		BMT_buffer->uv.y = uvs[1];
-		BMT_buffer->texid = texSlot;
-		BMT_buffer++;
+		buffer->pos.x = x;
+		buffer->pos.y = y;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[0];
+		buffer->uv.y = uvs[1];
+		buffer->texid = texSlot;
+		buffer++;
 
-		BMT_buffer->pos.x = x;
-		BMT_buffer->pos.y = y + tex.height;
-		BMT_buffer->color.x = r;
-		BMT_buffer->color.y = g;
-		BMT_buffer->color.z = b;
-		BMT_buffer->color.w = 1;
-		BMT_buffer->uv.x = uvs[2];
-		BMT_buffer->uv.y = uvs[3];
-		BMT_buffer->texid = texSlot;
-		BMT_buffer++;
+		buffer->pos.x = x;
+		buffer->pos.y = y + tex.height;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[2];
+		buffer->uv.y = uvs[3];
+		buffer->texid = texSlot;
+		buffer++;
 
-		BMT_buffer->pos.x = x + tex.width;
-		BMT_buffer->pos.y = y + tex.height;
-		BMT_buffer->color.x = r;
-		BMT_buffer->color.y = g;
-		BMT_buffer->color.z = b;
-		BMT_buffer->color.w = 1;
-		BMT_buffer->uv.x = uvs[4];
-		BMT_buffer->uv.y = uvs[5];
-		BMT_buffer->texid = texSlot;
-		BMT_buffer++;
+		buffer->pos.x = x + tex.width;
+		buffer->pos.y = y + tex.height;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[4];
+		buffer->uv.y = uvs[5];
+		buffer->texid = texSlot;
+		buffer++;
 
-		BMT_buffer->pos.x = x + tex.width;
-		BMT_buffer->pos.y = y;
-		BMT_buffer->color.x = r; 
-		BMT_buffer->color.y = g;
-		BMT_buffer->color.z = b;
-		BMT_buffer->color.w = 1;
-		BMT_buffer->uv.x = uvs[6];
-		BMT_buffer->uv.y = uvs[7];
-		BMT_buffer->texid = texSlot;
-		BMT_buffer++;
+		buffer->pos.x = x + tex.width;
+		buffer->pos.y = y;
+		buffer->color.x = r; 
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[6];
+		buffer->uv.y = uvs[7];
+		buffer->texid = texSlot;
+		buffer++;
 
-		BMT_indexcount += 6;
+		indexcount += 6;
 		xPos += (font.characters[str[i]]->advance >> 6);
 	}
 }
@@ -650,28 +650,28 @@ void end2D() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	startShader(&BMT_shader);
-	if (BMT_using_custom_projection)
-		loadMat4f(&BMT_shader, "pr_matrix", BMT_custom_projection);
+	startShader(&shader);
+	if (using_custom_projection)
+		loadMat4f(&shader, "pr_matrix", custom_projection);
 	else
-		loadMat4f(&BMT_shader, "pr_matrix", BMT_ortho_projection);
-	BMT_using_custom_projection = false;
+		loadMat4f(&shader, "pr_matrix", ortho_projection);
+	using_custom_projection = false;
 
-	for (int i = 0; i < BMT_texcount; ++i) {
+	for (int i = 0; i < texcount; ++i) {
 		//if (textures[i] != 0) {
 		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, BMT_textures[i]);
-		loadInt(&BMT_shader, BMT_locations[i], i);
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		loadInt(&shader, locations[i], i);
 		//}
 	}
 
-	glBindVertexArray(BMT_vao);
+	glBindVertexArray(vao);
 	glEnableVertexAttribArray(0); //position
 	glEnableVertexAttribArray(1); //color
 	glEnableVertexAttribArray(2); //texture coordinates
 	glEnableVertexAttribArray(3); //texture ID
 
-	glDrawElements(GL_TRIANGLES, BMT_indexcount, GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, indexcount, GL_UNSIGNED_SHORT, 0);
 
 	glDisableVertexAttribArray(0); //position
 	glDisableVertexAttribArray(1); //color
@@ -679,30 +679,30 @@ void end2D() {
 	glDisableVertexAttribArray(3); //textureID
 	glBindVertexArray(0);
 
-	for (int i = 0; i < BMT_texcount; ++i)
-		unbindTexture(BMT_textures[i]);
+	for (int i = 0; i < texcount; ++i)
+		unbindTexture(textures[i]);
 
-	BMT_indexcount = 0;
-	BMT_texcount = 0;
+	indexcount = 0;
+	texcount = 0;
 
 	stopShader();
 }
 
 void setStretchMode(StretchMode mode) {
-	BMT_stretch_mode = mode;
+	stretch_mode = mode;
 }
 
 void setAspectMode(AspectMode mode) {
-	BMT_aspect_mode = mode;
+	aspect_mode = mode;
 }
 
 Rect getViewportRect() {
-	return BMT_viewport_rect;
+	return viewport_rect;
 }
 
 INTERNAL 
 void limitViewportToAspectRatio(float aspect, float screen_width, float screen_height) {
-	if (aspect == 0) aspect == 1;
+	if (aspect == 0) aspect = 1;
 
 	int new_width = screen_width;
 	int new_height = (int)(screen_width / aspect);
@@ -711,36 +711,37 @@ void limitViewportToAspectRatio(float aspect, float screen_width, float screen_h
 		new_width = (int)(screen_height * aspect);
 	}
 	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
-	BMT_viewport_rect = Rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	viewport_rect = Rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
 }
 
 void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height) {
 	if (virtual_height == 0) virtual_height = 1;
 
-	if (BMT_stretch_mode == STRETCH_NONE) {
-		BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
-		BMT_viewport_rect = Rect(x, y, width, height);
-		if (BMT_aspect_mode == ASPECT_NONE) {
+	if (stretch_mode == STRETCH_NONE) {
+		ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
+		setVirtualSize(width, height);
+		viewport_rect = Rect(x, y, width, height);
+		if (aspect_mode == ASPECT_NONE) {
 			glViewport(x, y, width, height);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP) {
+		if (aspect_mode == ASPECT_KEEP) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP_WIDTH) {
+		if (aspect_mode == ASPECT_KEEP_WIDTH) {
 
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP_HEIGHT) {
+		if (aspect_mode == ASPECT_KEEP_HEIGHT) {
 
 		}
 	}
 
 	//TODO: Fix projection stretch
-	if (BMT_stretch_mode == STRETCH_PROJECTION) {
-		if (BMT_aspect_mode == ASPECT_NONE) {
-			BMT_ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
+	if (stretch_mode == STRETCH_PROJECTION) {
+		if (aspect_mode == ASPECT_NONE) {
+			ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP) {
+		if (aspect_mode == ASPECT_KEEP) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 
 			int new_width = width;
@@ -749,23 +750,23 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 				new_height = height;
 				new_width = (int)(height * aspect);
 			}
-			BMT_ortho_projection = mat4f::orthographic((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
+			ortho_projection = mat4f::orthographic((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
 		}
 	}
 
-	if (BMT_stretch_mode == STRETCH_VIEWPORT) {
-		if (BMT_aspect_mode == ASPECT_NONE) {
+	if (stretch_mode == STRETCH_VIEWPORT) {
+		if (aspect_mode == ASPECT_NONE) {
 			glViewport(x, y, width, height);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP) {
+		if (aspect_mode == ASPECT_KEEP) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP_WIDTH) {
+		if (aspect_mode == ASPECT_KEEP_WIDTH) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}
-		if (BMT_aspect_mode == ASPECT_KEEP_HEIGHT) {
+		if (aspect_mode == ASPECT_KEEP_HEIGHT) {
 			float aspect = (float)virtual_width / (float)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}
@@ -773,12 +774,12 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 }
 
 void attachShader2D(Shader shader_in) {
-	BMT_shader = shader_in;
+	shader = shader_in;
 }
 
 void dispose2D() {
-	glDeleteVertexArrays(1, &BMT_vao);
-	glDeleteBuffers(1, &BMT_vbo);
-	glDeleteBuffers(1, &BMT_ebo);
-	disposeShader(BMT_shader);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &ebo);
+	disposeShader(shader);
 }

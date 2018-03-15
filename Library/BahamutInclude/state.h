@@ -26,24 +26,34 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
 ///////////////////////////////////////////////////////////////////////////
 
+#include "defines.h"
+
 #ifndef STATE_H
 #define STATE_H
 
-#include <string>
+class State {
+public:
+	//is called when the state is added
+	virtual void init();
+	//is called when the state is switched to this state
+	virtual void ready();
+	//is called if draw_curr_state is called and this state
+	//is the current one
+	virtual void draw() = 0;
+	//is called if update_curr_state is called and this state
+	//is the current one
+	virtual void update() = 0;
+	//is called when state is removed or program ends
+	virtual void dispose();
 
-struct State {
-	void(*init)() = NULL;
-	void(*draw)() = NULL;
-	void(*update)() = NULL;
-	void(*dispose)() = NULL;
-	std::string name;
+	char* name;
+protected:
 };
 
-void setState(std::string name);
-void addState(State state);
-void removeState(std::string name);
-
-void drawCurrentState();
-void updateCurrentState();
+void add_state(State* state, const char* name);
+void remove_state(const char* name);
+void set_state(const char* name);
+void update_curr_state();
+void draw_curr_state();
 
 #endif

@@ -37,7 +37,7 @@
 
 namespace Math {
 
-	const float PI = 3.141592653589793238;
+	const float PI = (float)3.141592653589793238;
 
 	float degToRad(float deg);
 }

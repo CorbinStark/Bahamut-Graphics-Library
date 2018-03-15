@@ -32,7 +32,6 @@
 #define MAX_LOADED_TEXTURES 0xFFFF
 #define _PREVENT_MULTIPLE_TEXTURES
 
-INTERNAL
 struct TexData {
 	char* identifier;
 	Texture texture;

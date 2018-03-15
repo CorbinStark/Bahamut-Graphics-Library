@@ -25,76 +25,68 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     //
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
 ///////////////////////////////////////////////////////////////////////////
-
 #include "state.h"
 
-#define MAX_STATES 10
+#ifndef MAX_STATES
+#define MAX_STATES 15
+#endif
 
-State states[MAX_STATES];
-int numStates = 0;
-int currState = 0;
+INTERNAL State* states[MAX_STATES];
+INTERNAL int curr_state;
+INTERNAL int num_states;
 
-void setState(std::string name) {
-	bool found = false;
-	for (int i = 0; i < numStates; ++i) {
-		if (states[i].name == name) {
-			currState = i;
-			found = true;
-		}
-	}
-	if (!found)
-		printf("ERROR: STATES: State '%s' doesn't exist!\n", name.c_str());
-}
+void State::init() {}
+void State::ready() {}
+void State::dispose() {}
 
-void addState(State state) {
-	if (numStates >= MAX_STATES)
+void add_state(State* state, const char* name) {
+	if (num_states >= MAX_STATES)
 		printf("ERROR: STATES: TOO MANY STATES!\n");
 	else {
-		states[numStates] = state;
-		numStates++;
-		if(state.init != NULL)
-			state.init();
-		else
-			printf("ERROR: STATES: INIT FUNCTION FOR STATE '%s' IS NULL!\n", state.name.c_str());
+		state->name = (char*)malloc(strlen(name) + 1);
+		strcpy(state->name, name);
+		states[num_states] = state;
+		num_states++;
+		state->init();
 	}
 }
 
-void removeState(std::string name) {
+void remove_state(const char* name) {
 	bool found = false;
-	for (int i = 0; i < numStates; ++i) {
-		if (states[i].name == name) {
-			if(states[i].dispose != NULL)
-				states[i].dispose();
-			else
-				printf("ERROR: STATES: DISPOSE FUNCTION FOR STATE '%s' IS NULL!\n", states[i].name.c_str());
+	for (int i = 0; i < num_states; ++i) {
+		if (strcmp(states[i]->name, name) == 0) {
+			free(states[i]->name);
+			states[i]->dispose();
 			//move everything down 
 			//i is the item to remove
-			for (int j = i + 1; j < numStates; ++j) {
-				states[j - 1].init = states[j].init;
-				states[j - 1].dispose = states[j].dispose;
-				states[j - 1].draw = states[j].draw;
-				states[j - 1].update = states[j].update;
-				states[j - 1].name = states[j].name;
+			for (int j = i + 1; j < num_states; ++j) {
+				states[j - 1] = states[j];
 			}
-			numStates--;
+			num_states--;
 			found = true;
 		}
 	}
 	if (!found)
-		printf("ERROR: STATES: State '%s' doesn't exist!\n", name.c_str());
+		printf("ERROR: STATES: State '%s' doesn't exist!\n", name);
 }
 
-
-void drawCurrentState() {
-	if(states[currState].draw != NULL)
-		states[currState].draw();
-	else
-		printf("ERROR: STATES: DRAW FUNCTION FOR STATE '%s' IS NULL!\n", states[currState].name.c_str());
+void set_state(const char* name) {
+	bool found = false;
+	for (int i = 0; i < num_states; ++i) {
+		if (states[i] != NULL && strcmp(states[i]->name, name) == 0) {
+			states[i]->ready();
+			curr_state = i;
+			found = true;
+		}
+	}
+	if (!found)
+		printf("ERROR: STATES: State '%s' doesn't exist!\n", name);
 }
 
-void updateCurrentState() {
-	if (states[currState].update != NULL)
-		states[currState].update();
-	else
-		printf("ERROR: STATES: UPDATE FUNCTION FOR STATE '%s' IS NULL!\n", states[currState].name.c_str());
+void update_curr_state() {
+	states[curr_state]->update();
+}
+
+void draw_curr_state() {
+	states[curr_state]->draw();
 }

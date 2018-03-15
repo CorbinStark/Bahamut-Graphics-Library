@@ -29,6 +29,16 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+#if defined(__LINUX__)
+#include <unistd.h>
+#endif
+#if defined(__APPLE__)
+#include <unistd.h>
+#endif
+
 #include <GL/glew.h>
 #include <GLFW\glfw3.h>
 #include <stdlib.h>

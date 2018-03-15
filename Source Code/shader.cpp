@@ -114,7 +114,7 @@ void loadBool(Shader* shader, const GLchar* name, bool value) {
 		boolean = 1;
 
 	GLint location = getUniformLocation(shader, name);
-	glUniform1f(location, boolean);
+	glUniform1f((GLfloat)location, boolean);
 }
 
 void loadMat4f(Shader* shader, const GLchar* name, mat4f mat) {
