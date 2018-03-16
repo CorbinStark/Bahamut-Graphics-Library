@@ -1,5 +1,5 @@
-# Bahamut Graphics Library
-2D and 3D compatible graphics library created in C++ using OpenGL, OpenAL, and GLFW. Bahamut aims to streamline and simplify the games programming experience. Easy to learn, easy to master.
+# Bahamut Game Library
+2D and 3D compatible game library created in C++ using OpenGL, OpenAL, and GLFW. Bahamut aims to streamline and simplify the games programming experience. Easy to learn, easy to master.
 
 ## Linking the library into Visual Studio
 
@@ -45,7 +45,7 @@ Contact me if this did not work for you.
 
 ## Documentation
 
-This graphics library aims to simplify the games programming experience. As such there is only one window,
+This game library aims to simplify the games programming experience. As such there is only one window,
 so all functions related to input and drawing are global and can be called from anywhere.
 
 To initialize the window
