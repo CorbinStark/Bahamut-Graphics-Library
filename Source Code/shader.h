@@ -58,11 +58,11 @@ void loadFloat(Shader* shader, const GLchar* name, GLfloat value);
 void loadFloatArray(Shader* shader, const GLchar* name, GLfloat arr[], int count);
 void loadInt(Shader* shader, const GLchar* name, GLint value);
 void loadIntArray(Shader* shader, const GLchar* name, GLint arr[], int count);
-void loadVec2f(Shader* shader, const GLchar* name, vec2f vec);
-void loadVec3f(Shader* shader, const GLchar* name, vec3f vec);
-void loadVec4f(Shader* shader, const GLchar* name, vec4f vec);
+void loadVec2f(Shader* shader, const GLchar* name, vec2 vec);
+void loadVec3f(Shader* shader, const GLchar* name, vec3 vec);
+void loadVec4f(Shader* shader, const GLchar* name, vec4 vec);
 void loadBool(Shader* shader, const GLchar* name, bool value);
-void loadMat4f(Shader* shader, const GLchar* name, mat4f mat);
+void loadMat4f(Shader* shader, const GLchar* name, mat4 mat);
 //============================================||
 //				---------UNIFORM VARIABLE LOADING-----------					 ||
 //============================================||

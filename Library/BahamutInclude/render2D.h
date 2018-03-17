@@ -69,9 +69,9 @@ void init2D(int x, int y, int width, int height);
 //	begin2D and end2D.
 //==========================================================================================
 void begin2D();
-void begin2D(mat4f projection);
+void begin2D(mat4 projection);
 void begin2D(Shader shader);
-void begin2D(Shader shader, mat4f projection);
+void begin2D(Shader shader, mat4 projection);
 //==========================================================================================
 //Description: Draws a texture onto the bound framebuffer (by default the window)
 //
@@ -97,12 +97,12 @@ void drawTexture(Texture& tex, int xPos, int yPos);
 //==========================================================================================
 void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, float a);
 void drawTextureRot(Texture& tex, int xPos, int yPos, float rotateDegree);
-void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotation);
+void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotation);
 void drawTextureEX(Texture& tex, Rect source, Rect dest);
-void drawTextureEX(Texture& tex, Rect source, Rect dest, vec2f origin);
+void drawTextureEX(Texture& tex, Rect source, Rect dest, vec2 origin);
 void drawRenderTexture(RenderTexture& tex, int xPos, int yPos);
 void drawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
-void drawRectangle(int x, int y, int width, int height, vec4f& color);
+void drawRectangle(int x, int y, int width, int height, vec4 color);
 void drawText(Font& font, std::string str, int x, int y);
 void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g, float b);
 //===============================================================================

@@ -58,7 +58,7 @@ void endDrawing();
 bool isWindowClosed();
 
 void setClearColor(float r, float g, float b, float a);
-void setClearColor(vec4f& color);
+void setClearColor(vec4 color);
 void setKeyCallback(void(*keyCallback)(int key, int action));
 void setMouseCallback(void(*mouseCallback)(double mousex, double mousey, int button, int action));
 void setWindowResizeCallback(void(*resizecallback)(int width, int height));
@@ -75,7 +75,7 @@ bool isButtonUp(unsigned int button);
 double getElapsedTime();
 
 void getMousePos(double* mousex, double* mousey);
-vec2f getMousePos();
+vec2 getMousePos();
 void disposeWindow();
 
 void setFPSCap(double FPS);
@@ -87,7 +87,7 @@ void setVSync(bool vsync);
 void setVirtualSize(int v_width, int v_height);
 int getVirtualWidth();
 int getVirtualHeight();
-vec2f getVirtualSize();
+vec2 getVirtualSize();
 int getWindowWidth();
 int getWindowHeight();
 

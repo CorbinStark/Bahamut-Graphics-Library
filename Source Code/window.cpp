@@ -215,7 +215,7 @@ void setClearColor(float r, float g, float b, float a) {
 	glClearColor(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
-void setClearColor(vec4f& color) {
+void setClearColor(vec4 color) {
 	setClearColor(color.x, color.y, color.z, color.w);
 }
 
@@ -369,9 +369,9 @@ void getMousePos(double* mousex, double* mousey) {
 	*mousey *= (float)bmt_win.virtual_height / (float)bmt_win.height;
 }
 
-vec2f getMousePos() {
-	vec2f mouse_pos = vec2f((float)bmt_win.mousex, (float)bmt_win.mousey);
-	vec2f scale = vec2f((float)(bmt_win.virtual_width) / (float)(bmt_win.width), (float)(bmt_win.virtual_height) / (float)(bmt_win.height));
+vec2 getMousePos() {
+	vec2 mouse_pos = V2((float)bmt_win.mousex, (float)bmt_win.mousey);
+	vec2 scale = V2((float)(bmt_win.virtual_width) / (float)(bmt_win.width), (float)(bmt_win.virtual_height) / (float)(bmt_win.height));
 	mouse_pos = mouse_pos * scale;
 	return mouse_pos;
 }
@@ -398,8 +398,8 @@ int getVirtualHeight() {
 	return bmt_win.virtual_height;
 }
 
-vec2f getVirtualSize() {
-	return vec2f((float)bmt_win.virtual_width, (float)bmt_win.virtual_height);
+vec2 getVirtualSize() {
+	return V2((float)bmt_win.virtual_width, (float)bmt_win.virtual_height);
 }
 
 int getWindowWidth() {

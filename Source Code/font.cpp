@@ -102,8 +102,8 @@ Font loadFont(const GLchar* filepath, unsigned int size) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		character->size = vec2f((float)font.face->glyph->bitmap.width, (float)font.face->glyph->bitmap.rows);
-		character->bearing = vec2f((float)font.face->glyph->bitmap_left, (float)font.face->glyph->bitmap_top);
+		character->size = V2((float)font.face->glyph->bitmap.width, (float)font.face->glyph->bitmap.rows);
+		character->bearing = V2((float)font.face->glyph->bitmap_left, (float)font.face->glyph->bitmap_top);
 		character->advance = font.face->glyph->advance.x;
 
 		free(pixels);
