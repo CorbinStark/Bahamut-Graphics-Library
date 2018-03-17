@@ -196,7 +196,6 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 	//END INIT GLEW
 
 	init2D(0, 0, width, height);
-	initAudio();
 }
 
 void setWindowPos(int x, int y) {

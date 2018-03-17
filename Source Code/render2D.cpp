@@ -333,7 +333,7 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotati
 
 	//degToRad is expensive don't do it if there is no rotation
 	if (rotation != 0)
-		rotation = Math::degToRad(rotation);
+		rotation = degToRad(rotation);
 
 	float newX;
 	float newY;

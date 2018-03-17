@@ -120,7 +120,7 @@ mat4f mat4f::scaleMatrix(const float scaleX, const float scaleY, const float sca
 
 mat4f mat4f::rotationX(float angle) {
 	mat4f mat(1.0f);
-	float theta = Math::degToRad(angle);
+	float theta = degToRad(angle);
 	float s = sin(theta);
 	float c = cos(theta);
 
@@ -133,7 +133,7 @@ mat4f mat4f::rotationX(float angle) {
 
 mat4f mat4f::rotationY(float angle) {
 	mat4f mat(1.0f);
-	float theta = Math::degToRad(angle);
+	float theta = degToRad(angle);
 	float s = sin(theta);
 	float c = cos(theta);
 
@@ -146,7 +146,7 @@ mat4f mat4f::rotationY(float angle) {
 
 mat4f mat4f::rotationZ(float angle) {
 	mat4f mat(1.0f);
-	float theta = Math::degToRad(angle);
+	float theta = degToRad(angle);
 	float s = sin(theta);
 	float c = cos(theta);
 
@@ -160,7 +160,7 @@ mat4f mat4f::rotationZ(float angle) {
 
 mat4f mat4f::rotation(float angle, const vec3f& axis) {
 	mat4f mat;
-	float theta = Math::degToRad(angle);
+	float theta = degToRad(angle);
 	float s = sin(theta);
 	float c = cos(theta);
 	float cm1 = (1.0f - c);
@@ -180,7 +180,7 @@ mat4f mat4f::rotation(float angle, const vec3f& axis) {
 
 mat4f mat4f::rotation(float angle, const float axisX, const float axisY, const float axisZ) {
 	mat4f mat;
-	float theta = Math::degToRad(angle);
+	float theta = degToRad(angle);
 	float s = sin(theta);
 	float c = cos(theta);
 	float cm1 = (1.0f - c);
@@ -223,7 +223,7 @@ mat4f mat4f::orthographic(float x, float y, float width, float height, float nea
 //=========================================================================
 mat4f mat4f::perspective(float fov, float aspectRatio, float near, float far) {
 	mat4f mat;
-	float radFov = Math::degToRad(fov);
+	float radFov = degToRad(fov);
 	mat.elements[0 + 0 * 4] = (1 / tan(radFov * 0.5f)) / aspectRatio;
 	mat.elements[1 + 1 * 4] = 1 / tan(radFov * 0.5f);
 	mat.elements[2 + 2 * 4] = -((far + near) / (far - near));
@@ -257,9 +257,9 @@ mat4f mat4f::createTransformationMatrix(const float x, const float y, const floa
 
 mat4f mat4f::createViewMatrix(Camera& cam) {
 	mat4f mat(1.0f);
-	mat.rotate((float)Math::degToRad(cam.pitch), vec3f(1, 0, 0));
-	mat.rotate((float)Math::degToRad(cam.yaw), vec3f(0, 1, 0));
-	mat.rotate((float)Math::degToRad(cam.roll), vec3f(0, 0, 1));
+	mat.rotate((float)degToRad(cam.pitch), vec3f(1, 0, 0));
+	mat.rotate((float)degToRad(cam.yaw), vec3f(0, 1, 0));
+	mat.rotate((float)degToRad(cam.roll), vec3f(0, 0, 1));
 	vec3f negativePos(-cam.x, -cam.y, -cam.z);
 	mat.translate(negativePos);
 	return mat;
