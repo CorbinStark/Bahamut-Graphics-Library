@@ -34,12 +34,12 @@
 #define GLOBAL   extern
 #define MAX_FORMAT_TEXT_SIZE 128
 
-#define BMT_STRINGIFY(x) #x
-#define BMT_STRING_JOIN(str1, str2) str1 ## str2
+#define BMT_TO_STRING(x) #x
+#define BMT_STRING_APPEND(str1, str2) str1 ## str2
 
 #define BMT_MAX(a,b) ((a) < (b) ? (a) : (b))
 #define BMT_MIN(a,b) ((a) < (b) ? (b) : (a))
-#define BMT_CLAMP(i,v,x) (BMT_MAX(BMT_MIN(v,x), i))
+#define BMT_CLAMP(i,a,b) (BMT_MAX(BMT_MIN(a,b), i))
 
 #include <stdint.h>
 #define i8 int8_t
@@ -50,6 +50,13 @@
 #define u32 uint32_t
 #define i64 int64_t
 #define u64 uint64_t
+#include <float.h>
+#define real32 float
+#define real64 double
+#define f32 float
+#define f64 double
+#include <stddef.h>
+#define b32 int32
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -61,7 +68,7 @@
 #define WARNING 3
 #define DEBUG 4
 
-//TODO: have this saved to file too (possibly only while in debug mode)
+//TODO: have log saved to file too (possibly only while in debug mode)
 INTERNAL
 void BMT_LOG(u8 TYPE, const char* format, ...) {
 	switch (TYPE) {
@@ -130,6 +137,9 @@ char** splitString(const char* string, const char* seperator, u32* numTokens) {
 #define BMT_ASSERT(expr) assert(expr)
 #endif
 
+
+//Altered GLFW3 #defines to remove the GLFW_ and make it less verbose to type.
+//Original written by Marcus Geelnard and Camilla Berglund
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #define RELEASE                0

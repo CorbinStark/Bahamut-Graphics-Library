@@ -30,7 +30,7 @@
 #define FONT_H
 
 #include "texture.h"
-#include "vec2f.h"
+#include "maths.h"
 #include "defines.h"
 #include <GL/glew.h>
 #include <ft2build.h>
@@ -38,8 +38,8 @@
 
 struct Character {
 	Texture	texture;
-	vec2f	size;
-	vec2f	bearing;
+	vec2	size;
+	vec2	bearing;
 	GLuint	advance;
 };
 

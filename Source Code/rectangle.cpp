@@ -54,7 +54,7 @@ bool colliding(Rect& rect, float x, float y, float width, float height) {
 	return false;
 }
 
-bool colliding(Rect& rect, vec2f& point) {
+bool colliding(Rect& rect, vec2 point) {
 	if (rect.x + rect.width >= point.x && rect.x <= point.x + 1) {
 		if (rect.y <= point.y + 1 && rect.y + rect.height >= point.y) {
 			return true;

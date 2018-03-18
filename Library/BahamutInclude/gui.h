@@ -38,7 +38,7 @@ void endGUI();
 
 struct NinePatchRect {
 	Texture tex;
-	vec2f tile_size;
+	vec2 tile_size;
 	enum StretchType {
 		STRETCH_TILE,
 		STRETCH_SCALE

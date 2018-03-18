@@ -51,13 +51,13 @@ void quickSort(int arr[], int size) {
 	quickSort(arr, 0, size);
 }
 
-double getDistanceM(vec2f first, vec2f second) {
+double getDistanceM(vec2 first, vec2 second) {
 	double dx = std::abs(first.x - second.x);
 	double dy = std::abs(first.y - second.y);
 	return std::max(dx, dy);
 }
 
-double getDistanceE(vec2f first, vec2f second) {
+double getDistanceE(vec2 first, vec2 second) {
 	double dx = first.x - second.x;
 	double dy = first.y - second.y;
 	return std::abs(std::sqrt(dx * dx + dy * dy));

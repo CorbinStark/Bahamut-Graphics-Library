@@ -93,17 +93,17 @@ void loadIntArray(Shader* shader, const GLchar* name, GLint arr[], int count) {
 	glUniform1iv(location, count, arr);
 }
 
-void loadVec2f(Shader* shader, const GLchar* name, vec2f vec) {
+void loadVec2f(Shader* shader, const GLchar* name, vec2 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform2f(location, vec.x, vec.y);
 }
 
-void loadVec3f(Shader* shader, const GLchar* name, vec3f vec) {
+void loadVec3f(Shader* shader, const GLchar* name, vec3 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform3f(location, vec.x, vec.y, vec.z);
 }
 
-void loadVec4f(Shader* shader, const GLchar* name, vec4f vec) {
+void loadVec4f(Shader* shader, const GLchar* name, vec4 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
 }
@@ -117,9 +117,9 @@ void loadBool(Shader* shader, const GLchar* name, bool value) {
 	glUniform1f((GLfloat)location, boolean);
 }
 
-void loadMat4f(Shader* shader, const GLchar* name, mat4f mat) {
+void loadMat4f(Shader* shader, const GLchar* name, mat4 mat) {
 	GLint location = getUniformLocation(shader, name);
-	glUniformMatrix4fv(location, 1, GL_FALSE, mat.elements);
+	glUniformMatrix4fv(location, 1, GL_FALSE, mat.e);
 }
 
 GLuint loadShaderFile(const GLchar* filename, GLuint type) {

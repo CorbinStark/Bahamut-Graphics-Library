@@ -44,8 +44,8 @@ INTERNAL StretchMode stretch_mode;
 INTERNAL AspectMode aspect_mode;
 
 INTERNAL Shader shader;
-INTERNAL mat4f ortho_projection;
-INTERNAL mat4f custom_projection;
+INTERNAL mat4 ortho_projection;
+INTERNAL mat4 custom_projection;
 INTERNAL bool using_custom_projection;
 
 INTERNAL Rect viewport_rect;
@@ -177,7 +177,7 @@ void begin2D() {
 	);
 }
 
-void begin2D(mat4f projection) {
+void begin2D(mat4 projection) {
 	custom_projection = projection;
 	using_custom_projection = true;
 	begin2D();
@@ -312,9 +312,9 @@ void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, fl
 void drawTextureRot(Texture& tex, int xPos, int yPos, float rotateDegree) {
 	float originX = xPos + (tex.width / 2);
 	float originY = yPos + (tex.height / 2);
-	drawTextureRot(tex, xPos, yPos, vec2f(originX, originY), rotateDegree);
+	drawTextureRot(tex, xPos, yPos, V2(originX, originY), rotateDegree);
 }
-void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotation) {
+void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotation) {
 	if (tex.ID == 0)
 		return;
 	int texSlot = submitTex(tex);
@@ -333,7 +333,7 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2f origin, float rotati
 
 	//degToRad is expensive don't do it if there is no rotation
 	if (rotation != 0)
-		rotation = Math::degToRad(rotation);
+		rotation = degToRad(rotation);
 
 	float newX;
 	float newY;
@@ -515,7 +515,7 @@ void drawRectangle(int x, int y, int width, int height, float r, float g, float 
 
 	indexcount += 6;
 }
-void drawRectangle(int x, int y, int width, int height, vec4f& color) {
+void drawRectangle(int x, int y, int width, int height, vec4 color) {
 	float r = color.x / 255.0f;
 	float g = color.y / 255.0f;
 	float b = color.z / 255.0f;
@@ -718,7 +718,7 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 	if (virtual_height == 0) virtual_height = 1;
 
 	if (stretch_mode == STRETCH_NONE) {
-		ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
+		ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
 		setVirtualSize(width, height);
 		viewport_rect = Rect(x, y, width, height);
 		if (aspect_mode == ASPECT_NONE) {
@@ -739,7 +739,7 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 	//TODO: Fix projection stretch
 	if (stretch_mode == STRETCH_PROJECTION) {
 		if (aspect_mode == ASPECT_NONE) {
-			ortho_projection = mat4f::orthographic(x, y, width, height, -10.0f, 10.0f);
+			ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
 		}
 		if (aspect_mode == ASPECT_KEEP) {
 			float aspect = (float)virtual_width / (float)virtual_height;
@@ -750,7 +750,7 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 				new_height = height;
 				new_width = (int)(height * aspect);
 			}
-			ortho_projection = mat4f::orthographic((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
+			ortho_projection = orthographic_projection((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
 		}
 	}
 

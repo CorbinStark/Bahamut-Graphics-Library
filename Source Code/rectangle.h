@@ -29,7 +29,7 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-#include "vec2f.h"
+#include "maths.h"
 #include "defines.h"
 
 struct Rect {
@@ -43,6 +43,6 @@ struct Rect {
 
 bool colliding(Rect& first, Rect& second);
 bool colliding(Rect& rect, float x, float y, float width, float height);
-bool colliding(Rect& rect, vec2f& point);
+bool colliding(Rect& rect, vec2 point);
 
 #endif

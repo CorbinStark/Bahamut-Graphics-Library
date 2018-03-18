@@ -29,7 +29,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "vec2f.h"
+#include "maths.h"
 #include "defines.h"
 
 void inline swap(int& a, int& b) {
@@ -40,8 +40,8 @@ void inline swap(int& a, int& b) {
 
 void quickSort(int arr[], int size, bool(*compareFunc)());
 
-double getDistanceM(vec2f first, vec2f second);
-double getDistanceE(vec2f first, vec2f second);
+double getDistanceM(vec2 first, vec2 second);
+double getDistanceE(vec2 first, vec2 second);
 
 template <class T>
 void clamp(T& input, T min, T max) {
