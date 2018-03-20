@@ -29,9 +29,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <GL/glew.h>
 #include <vector>
-#include "rectangle.h"
 #include "defines.h"
 
 const int FLIP_HORIZONTAL = 1;
@@ -56,5 +54,16 @@ void setTexturePixelsFromFile(Texture& texture, const char* filepath);
 
 void bindTexture(Texture& texture, u32 slot);
 void unbindTexture(u32 slot);
+
+struct RenderTexture {
+	GLuint framebufferID;
+	GLuint textureID;
+	unsigned long flip_flag;
+	int width;
+	int height;
+};
+
+void createRenderTexture(int width, int height);
+void createRenderTexture(Texture& base);
 
 #endif

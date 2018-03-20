@@ -29,12 +29,16 @@
 #ifndef RENDER2D_H
 #define RENDER2D_H
 
-#include "image.h"
+#include "defines.h"
 #include "shader.h"
 #include "font.h"
-#include "rectangle.h"
-#include "renderTexture.h"
-#include "defines.h"
+
+struct VertexData {
+	vec2 pos;
+	vec4 color; //32 bit color (8 for R, 8 for G, 8 for B, 8 for A)
+	vec2 uv;
+	float texid;
+};
 
 #define BATCH_MAX_SPRITES	    20000
 #define BATCH_VERTEX_SIZE	    sizeof(VertexData)
@@ -107,13 +111,13 @@ void drawText(Font& font, std::string str, int x, int y);
 void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g, float b);
 //===============================================================================
 //Description: Ends and flushes the renderer. You must do all draw calls in between
-//	begin2D and end2D. You can optionally attach a shader before calling begin2D.
+//	begin2D and end2D.
 //===============================================================================
 void end2D();
 
-int submitTex(Texture& tex);
-
+//StretchMode only applies to 2D
 void setStretchMode(StretchMode mode);
+//AspectMode only applies to 2D
 void setAspectMode(AspectMode mode);
 
 Rect getViewportRect();

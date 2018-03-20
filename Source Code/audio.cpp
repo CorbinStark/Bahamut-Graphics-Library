@@ -105,22 +105,6 @@ SoundData loadMP3(const char* filename) {
 	return data;
 }
 
-INTERNAL
-bool hasExtension(const char* filename, const char* extension) {
-	u32 numTokens = 0;
-	char** tokens;
-	tokens = splitString(filename, ".", &numTokens);
-	bool answer = strcmp(tokens[numTokens - 1], extension) == 0;
-
-	for (u8 i = 0; i < numTokens; ++i)
-		if (tokens[i] != NULL)
-			free(tokens[i]);
-	if (tokens != NULL)
-		free(tokens);
-
-	return answer;
-}
-
 void initAudio() {
 	ALCdevice *device = alcOpenDevice(NULL);
 	if (!device)
@@ -168,10 +152,10 @@ Sound loadSound(const char* filename) {
 	Sound sound;
 	SoundData data;
 
-	if (hasExtension(filename, "wav"))       data = loadWAV(filename);
-	else if (hasExtension(filename, "ogg"))  data = loadOGG(filename);
-	else if (hasExtension(filename, "flac")) data = loadFLAC(filename);
-	else if (hasExtension(filename, "mp3"))  data = loadMP3(filename);
+	if (has_extension(filename, "wav"))       data = loadWAV(filename);
+	else if (has_extension(filename, "ogg"))  data = loadOGG(filename);
+	else if (has_extension(filename, "flac")) data = loadFLAC(filename);
+	else if (has_extension(filename, "mp3"))  data = loadMP3(filename);
 	else {
 		BMT_LOG(WARNING, "[%s] Extension not supported!", filename);
 	}

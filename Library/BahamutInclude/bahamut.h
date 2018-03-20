@@ -29,16 +29,14 @@
 #ifndef BAHAMUT_H
 #define BAHAMUT_H
 
+#include "defines.h"
 #include "colors.h"
 #include "window.h"
 #include "shader.h"
 #include "render2D.h"
 #include "font.h"
-#include "gui.h"
 #include "texture.h"
 #include "maths.h"
 #include "entity.h"
-#include "defines.h"
 
-void setDepthTesting(bool depthTesting);
 #endif

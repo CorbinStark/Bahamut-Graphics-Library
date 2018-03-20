@@ -40,7 +40,7 @@ GLint getUniformLocation(Shader* shader, const GLchar* name) {
 	//	std::cout << "Caching uniform location of the name: " << name << std::endl;
 	//	_locations.insert(name, glGetUniformLocation(_progID, name)); //so it doesnt display error message again
 	//}
-	return glGetUniformLocation(shader->programID, name);
+	return glGetUniformLocation(shader->ID, name);
 }
 
 Shader loadShader(const GLchar* vertexfile, const GLchar* fragmentfile) {
@@ -48,13 +48,13 @@ Shader loadShader(const GLchar* vertexfile, const GLchar* fragmentfile) {
 	shader.vertexshaderID = loadShaderFile(vertexfile, GL_VERTEX_SHADER);
 	shader.fragshaderID = loadShaderFile(fragmentfile, GL_FRAGMENT_SHADER);
 
-	shader.programID = glCreateProgram();
-	glAttachShader(shader.programID, shader.vertexshaderID);
-	glAttachShader(shader.programID, shader.fragshaderID);
-	glBindFragDataLocation(shader.programID, 0, "outColor");
-	glLinkProgram(shader.programID);
-	glValidateProgram(shader.programID);
-	glUseProgram(shader.programID);
+	shader.ID = glCreateProgram();
+	glAttachShader(shader.ID, shader.vertexshaderID);
+	glAttachShader(shader.ID, shader.fragshaderID);
+	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glLinkProgram(shader.ID);
+	glValidateProgram(shader.ID);
+	glUseProgram(shader.ID);
 	return shader;
 }
 
@@ -63,13 +63,13 @@ Shader loadShaderFromStrings(const GLchar* vertexstring, const GLchar* fragments
 	shader.vertexshaderID = loadShaderString(vertexstring, GL_VERTEX_SHADER);
 	shader.fragshaderID = loadShaderString(fragmentstring, GL_FRAGMENT_SHADER);
 
-	shader.programID = glCreateProgram();
-	glAttachShader(shader.programID, shader.vertexshaderID);
-	glAttachShader(shader.programID, shader.fragshaderID);
-	glBindFragDataLocation(shader.programID, 0, "outColor");
-	glLinkProgram(shader.programID);
-	glValidateProgram(shader.programID);
-	glUseProgram(shader.programID);
+	shader.ID = glCreateProgram();
+	glAttachShader(shader.ID, shader.vertexshaderID);
+	glAttachShader(shader.ID, shader.fragshaderID);
+	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glLinkProgram(shader.ID);
+	glValidateProgram(shader.ID);
+	glUseProgram(shader.ID);
 	return shader;
 }
 
@@ -93,17 +93,17 @@ void loadIntArray(Shader* shader, const GLchar* name, GLint arr[], int count) {
 	glUniform1iv(location, count, arr);
 }
 
-void loadVec2f(Shader* shader, const GLchar* name, vec2 vec) {
+void loadVec2(Shader* shader, const GLchar* name, vec2 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform2f(location, vec.x, vec.y);
 }
 
-void loadVec3f(Shader* shader, const GLchar* name, vec3 vec) {
+void loadVec3(Shader* shader, const GLchar* name, vec3 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform3f(location, vec.x, vec.y, vec.z);
 }
 
-void loadVec4f(Shader* shader, const GLchar* name, vec4 vec) {
+void loadVec4(Shader* shader, const GLchar* name, vec4 vec) {
 	GLint location = getUniformLocation(shader, name);
 	glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
 }
@@ -117,15 +117,15 @@ void loadBool(Shader* shader, const GLchar* name, bool value) {
 	glUniform1f((GLfloat)location, boolean);
 }
 
-void loadMat4f(Shader* shader, const GLchar* name, mat4 mat) {
+void loadMat4(Shader* shader, const GLchar* name, mat4 mat) {
 	GLint location = getUniformLocation(shader, name);
-	glUniformMatrix4fv(location, 1, GL_FALSE, mat.e);
+	glUniformMatrix4fv(location, 1, GL_FALSE, mat.elements);
 }
 
 GLuint loadShaderFile(const GLchar* filename, GLuint type) {
 	int shaderID = glCreateShader(type);
 
-	const GLchar* shaderSource = IO::readFile(filename);
+	const GLchar* shaderSource = read_file(filename);
 
 	glShaderSource(shaderID, 1, &shaderSource, NULL);
 	glCompileShader(shaderID);
@@ -177,7 +177,7 @@ GLuint loadShaderString(const GLchar* shaderSource, GLuint type) {
 }
 
 void startShader(Shader* shader) {
-	glUseProgram(shader->programID);
+	glUseProgram(shader->ID);
 }
 
 void stopShader() {
@@ -187,5 +187,5 @@ void stopShader() {
 void disposeShader(Shader shader) {
 	glDeleteShader(shader.fragshaderID);
 	glDeleteShader(shader.vertexshaderID);
-	glDeleteProgram(shader.programID);
+	glDeleteProgram(shader.ID);
 }

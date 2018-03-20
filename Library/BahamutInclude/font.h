@@ -29,10 +29,9 @@
 #ifndef FONT_H
 #define FONT_H
 
+#include "defines.h"
 #include "texture.h"
 #include "maths.h"
-#include "defines.h"
-#include <GL/glew.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H 
 

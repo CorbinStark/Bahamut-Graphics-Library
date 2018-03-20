@@ -29,7 +29,6 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
-#include <GL/glew.h>
 #include "defines.h"
 
 struct Sound {

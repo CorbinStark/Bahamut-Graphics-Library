@@ -28,6 +28,7 @@
 
 #include "window.h"
 #include "render2D.h"
+#include "render3D.h"
 #include "audio.h"
 #include <iostream>
 #include <thread>
@@ -110,10 +111,10 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 
 	//INIT GLFW
 	if (!glfwInit()) {
-		std::cout << "GLFW could not initialize" << std::endl;
+		BMT_LOG(MINOR_ERROR, "GLFW could not initialize");
 	}
 	else {
-		std::cout << "GLFW has initialized" << std::endl;
+		BMT_LOG(INFO, "GLFW has initialized");
 	}
 
 	for (int i = 0; i < MAX_KEYS; ++i)
@@ -135,7 +136,7 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 		glfwWindowHint(GLFW_DECORATED, false);
 		bmt_win.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (!bmt_win.glfw_window) {
-			std::cout << "Windowed Window failed to be created" << std::endl;
+			BMT_LOG(MINOR_ERROR, "Windowed Window failed to be created");
 			glfwTerminate();
 		}
 		bmt_win.x = bmt_win.y = 0;
@@ -153,7 +154,7 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 		glfwWindowHint(GLFW_VISIBLE, false);
 		bmt_win.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (!bmt_win.glfw_window) {
-			std::cout << "Windowed Window failed to be created" << std::endl;
+			BMT_LOG(MINOR_ERROR, "Windowed Window failed to be created");
 			glfwTerminate();
 		}
 		bmt_win.x = bmt_win.y = 0;
@@ -175,18 +176,18 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
-		std::cout << glewGetErrorString(err) << std::endl;
-		std::cout << "GLEW could not initialize" << std::endl;
+		BMT_LOG(MINOR_ERROR, "%s", glewGetErrorString(err));
+		BMT_LOG(MINOR_ERROR, "GLEW could not initialize");
 	}
 	else {
-		std::cout << "GLEW has initialized" << std::endl;
+		BMT_LOG(INFO, "GLEW has initialized");
 	}
 	rebuildState();
 
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-	std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Graphics Card: " << glGetString(GL_RENDERER) << std::endl << std::endl;
+	BMT_LOG(INFO, "OpenGL Version: %s", glGetString(GL_VERSION));
+	BMT_LOG(INFO, "GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	BMT_LOG(INFO, "OpenGL Vendor: %s", glGetString(GL_VENDOR));
+	BMT_LOG(INFO, "Graphics Card: %s", glGetString(GL_RENDERER));
 
 	glfwSetKeyCallback(bmt_win.glfw_window, keycallback);
 	glfwSetWindowSizeCallback(bmt_win.glfw_window, resizeCallback);
@@ -196,6 +197,7 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 	//END INIT GLEW
 
 	init2D(0, 0, width, height);
+	init3D();
 }
 
 void setWindowPos(int x, int y) {
@@ -209,6 +211,7 @@ void setWindowSize(int width, int height) {
 	bmt_win.height = height;
 	glfwSetWindowSize(bmt_win.glfw_window, width, height);
 	set2DRenderViewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
+	set3DRenderViewport(width, height);
 }
 
 void setClearColor(float r, float g, float b, float a) {
@@ -378,6 +381,9 @@ vec2 getMousePos() {
 
 void disposeWindow() {
 	glfwSetWindowShouldClose(bmt_win.glfw_window, true);
+	glfwDestroyWindow(bmt_win.glfw_window);
+	glfwDefaultWindowHints();
+	glfwTerminate();
 	dispose2D();
 }
 

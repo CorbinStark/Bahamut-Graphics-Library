@@ -29,7 +29,6 @@
 #include "render2D.h"
 #include "orthoshader.h"
 #include "window.h"
-#include <GL/glew.h>
 
 INTERNAL GLuint vao;
 INTERNAL GLuint vbo;
@@ -72,7 +71,7 @@ GLfloat FLIP_BOTH_UVS[8] = {
 };
 
 INTERNAL 
-int submitTex(Texture& tex) {
+int submitTex(Texture tex) {
 	int texSlot = 0;
 	bool found = false;
 	for (int i = 0; i < texcount; ++i) {
@@ -93,25 +92,24 @@ int submitTex(Texture& tex) {
 	return texSlot;
 }
 
-void init2D(int x, int y, int width, int height) {
+void init2D(i32 x, i32 y, u32 width, u32 height) {
 	stretch_mode = STRETCH_NONE;
 	aspect_mode = ASPECT_NONE;
 	set2DRenderViewport(x, y, width, height, getVirtualWidth(), getVirtualHeight());
 	texcount = indexcount = 0;
 
-	//LOAD SHADER - CUSTOM LOAD BECAUSE ATTRIB LOCATIONS MUST BE BOUND MANUALLY TO SUPPORT EARLIER VERSIONS
 	shader.vertexshaderID = loadShaderString(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
 	shader.fragshaderID = loadShaderString(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
-	shader.programID = glCreateProgram();
-	glAttachShader(shader.programID, shader.vertexshaderID);
-	glAttachShader(shader.programID, shader.fragshaderID);
-	glBindFragDataLocation(shader.programID, 0, "outColor");
-	glBindAttribLocation(shader.programID, 0, "position");
-	glBindAttribLocation(shader.programID, 1, "color");
-	glBindAttribLocation(shader.programID, 2, "uv");
-	glBindAttribLocation(shader.programID, 3, "texid");
-	glLinkProgram(shader.programID);
-	glValidateProgram(shader.programID);
+	shader.ID = glCreateProgram();
+	glAttachShader(shader.ID, shader.vertexshaderID);
+	glAttachShader(shader.ID, shader.fragshaderID);
+	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glBindAttribLocation(shader.ID,   0, "position");
+	glBindAttribLocation(shader.ID,   1, "color");
+	glBindAttribLocation(shader.ID,   2, "uv");
+	glBindAttribLocation(shader.ID,   3, "texid");
+	glLinkProgram(shader.ID);
+	glValidateProgram(shader.ID);
 	glUseProgram(0);
 	for (int i = 0; i < BATCH_MAX_TEXTURES; ++i)
 		textures[i] = 0;
@@ -170,7 +168,12 @@ void init2D(int x, int y, int width, int height) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
+
 void begin2D() {
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glViewport(viewport_rect.x, viewport_rect.y, viewport_rect.width, viewport_rect.height);
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
@@ -183,7 +186,7 @@ void begin2D(mat4 projection) {
 	begin2D();
 }
 
-void drawTexture(Texture& tex, int xPos, int yPos) {
+void drawTexture(Texture tex, i32 xPos, i32 yPos) {
 	if (tex.ID == 0)
 		return;
 	int texSlot = submitTex(tex);
@@ -243,7 +246,8 @@ void drawTexture(Texture& tex, int xPos, int yPos) {
 
 	indexcount += 6;
 }
-void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, float a) {
+
+void drawTexture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
 	if (tex.ID == 0)
 		return;
 
@@ -309,12 +313,14 @@ void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, fl
 
 	indexcount += 6;
 }
-void drawTextureRot(Texture& tex, int xPos, int yPos, float rotateDegree) {
-	float originX = xPos + (tex.width / 2);
-	float originY = yPos + (tex.height / 2);
+
+void drawTextureRot(Texture tex, i32 xPos, i32 yPos, f32 rotateDegree) {
+	float originX = xPos + (tex.width / 2.0f);
+	float originY = yPos + (tex.height / 2.0f);
 	drawTextureRot(tex, xPos, yPos, V2(originX, originY), rotateDegree);
 }
-void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotation) {
+
+void drawTextureRot(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation) {
 	if (tex.ID == 0)
 		return;
 	int texSlot = submitTex(tex);
@@ -333,7 +339,7 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotatio
 
 	//degToRad is expensive don't do it if there is no rotation
 	if (rotation != 0)
-		rotation = degToRad(rotation);
+		rotation = deg_to_rad(rotation);
 
 	float newX;
 	float newY;
@@ -400,7 +406,8 @@ void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotatio
 	
 	indexcount += 6;
 }
-void drawTextureEX(Texture& tex, Rect source, Rect dest) {
+
+void drawTextureEX(Texture tex, Rect source, Rect dest) {
 	if (tex.ID == 0)
 		return;
 
@@ -463,7 +470,8 @@ void drawTextureEX(Texture& tex, Rect source, Rect dest) {
 
 	indexcount += 6;
 }
-void drawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
+
+void drawRectangle(i32 x, i32 y, u32 width, u32 height, f32 r, f32 g, f32 b, f32 a) {
 	r /= 255.0f;
 	g /= 255.0f;
 	b /= 255.0f;
@@ -515,7 +523,8 @@ void drawRectangle(int x, int y, int width, int height, float r, float g, float 
 
 	indexcount += 6;
 }
-void drawRectangle(int x, int y, int width, int height, vec4 color) {
+
+void drawRectangle(i32 x, i32 y, u32 width, u32 height, vec4 color) {
 	float r = color.x / 255.0f;
 	float g = color.y / 255.0f;
 	float b = color.z / 255.0f;
@@ -567,7 +576,8 @@ void drawRectangle(int x, int y, int width, int height, vec4 color) {
 
 	indexcount += 6;
 }
-void drawText(Font& font, std::string str, int xPos, int yPos) {
+
+void drawText(Font& font, std::string str, i32 xPos, i32 yPos) {
 	for (int i = 0; i < str.size(); ++i) {
 		Character* c = font.characters[str[i]];
 		int yOffset = (font.characters['T']->bearing.y - c->bearing.y) + 1;
@@ -580,7 +590,8 @@ void drawText(Font& font, std::string str, int xPos, int yPos) {
 		xPos += (font.characters[str[i]]->advance >> 6);
 	}
 }
-void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g, float b) {
+
+void drawText(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b) {
 	r /= 255;
 	g /= 255;
 	b /= 255;
@@ -646,15 +657,16 @@ void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g,
 		xPos += (font.characters[str[i]]->advance >> 6);
 	}
 }
+
 void end2D() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	startShader(&shader);
 	if (using_custom_projection)
-		loadMat4f(&shader, "pr_matrix", custom_projection);
+		loadMat4(&shader, "pr_matrix", custom_projection);
 	else
-		loadMat4f(&shader, "pr_matrix", ortho_projection);
+		loadMat4(&shader, "pr_matrix", ortho_projection);
 	using_custom_projection = false;
 
 	for (int i = 0; i < texcount; ++i) {
@@ -701,31 +713,31 @@ Rect getViewportRect() {
 }
 
 INTERNAL 
-void limitViewportToAspectRatio(float aspect, float screen_width, float screen_height) {
+void limitViewportToAspectRatio(f32 aspect, f32 screen_width, f32 screen_height) {
 	if (aspect == 0) aspect = 1;
 
-	int new_width = screen_width;
-	int new_height = (int)(screen_width / aspect);
+	i32 new_width = screen_width;
+	i32 new_height = (i32)(screen_width / aspect);
 	if (new_height > screen_height) {
 		new_height = screen_height;
-		new_width = (int)(screen_height * aspect);
+		new_width = (i32)(screen_height * aspect);
 	}
 	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
-	viewport_rect = Rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	viewport_rect = rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
 }
 
-void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height) {
+void set2DRenderViewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height) {
 	if (virtual_height == 0) virtual_height = 1;
 
 	if (stretch_mode == STRETCH_NONE) {
 		ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
 		setVirtualSize(width, height);
-		viewport_rect = Rect(x, y, width, height);
+		viewport_rect = rect(x, y, width, height);
 		if (aspect_mode == ASPECT_NONE) {
 			glViewport(x, y, width, height);
 		}
 		if (aspect_mode == ASPECT_KEEP) {
-			float aspect = (float)virtual_width / (float)virtual_height;
+			f32 aspect = (f32)virtual_width / (f32)virtual_height;
 			limitViewportToAspectRatio(aspect, width, height);
 		}
 		if (aspect_mode == ASPECT_KEEP_WIDTH) {
@@ -742,13 +754,13 @@ void set2DRenderViewport(int x, int y, int width, int height, int virtual_width,
 			ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
 		}
 		if (aspect_mode == ASPECT_KEEP) {
-			float aspect = (float)virtual_width / (float)virtual_height;
+			f32 aspect = (f32)virtual_width / (f32)virtual_height;
 
-			int new_width = width;
-			int new_height = (int)(width / aspect);
+			i32 new_width = width;
+			i32 new_height = (i32)(width / aspect);
 			if (new_height > height) {
 				new_height = height;
-				new_width = (int)(height * aspect);
+				new_width = (i32)(height * aspect);
 			}
 			ortho_projection = orthographic_projection((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
 		}
