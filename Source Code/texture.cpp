@@ -106,7 +106,7 @@ Texture loadTexture(const char* filepath, u16 param) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 
 #if defined(_PREVENT_MULTIPLE_TEXTURES)
-		loaded_textures[num_loaded_textures].identifier = duplicateString(filepath);
+		loaded_textures[num_loaded_textures].identifier = duplicate_string(filepath);
 		loaded_textures[num_loaded_textures].texture.ID = texture.ID;
 		loaded_textures[num_loaded_textures].texture.height = texture.height;
 		loaded_textures[num_loaded_textures].texture.width = texture.width;
@@ -152,16 +152,16 @@ void disposeTexture(Texture& texture) {
 	texture.ID = 0;
 }
 
-void blitTexture(Texture& src, Texture& dest, Rect drawFrom, Rect drawTo) {
+void blitTexture(Texture src, Texture dest, Rect drawFrom, Rect drawTo) {
 
 }
 
-void setTexturePixels(Texture& texture, unsigned char* pixels, u32 width, u32 height) {
+void setTexturePixels(Texture texture, unsigned char* pixels, u32 width, u32 height) {
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
-void setTexturePixelsFromFile(Texture& texture, std::string filepath) {
+void setTexturePixelsFromFile(Texture texture, std::string filepath) {
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 	unsigned char* image = SOIL_load_image(filepath.c_str(), &texture.width, &texture.height, 0, SOIL_LOAD_RGBA);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
@@ -169,7 +169,7 @@ void setTexturePixelsFromFile(Texture& texture, std::string filepath) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void bindTexture(Texture& texture, u32 slot) {
+void bindTexture(Texture texture, u32 slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 }

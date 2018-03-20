@@ -39,12 +39,10 @@
 #include <unistd.h>
 #endif
 
-#include <GL/glew.h>
-#include <GLFW\glfw3.h>
 #include <stdlib.h>
 #include <vector>
-#include "maths.h"
 #include "defines.h"
+#include "maths.h"
 
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32

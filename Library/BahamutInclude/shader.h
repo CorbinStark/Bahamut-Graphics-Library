@@ -29,21 +29,25 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "image.h"
 #include "defines.h"
+#include "maths.h"
 
 struct Shader {
-	GLuint programID;
+	GLuint ID;
 	GLuint vertexshaderID;
 	GLuint fragshaderID;
-};
 
-struct Shader2D : public Shader {
-	void(*prepareRenderCallback)(Texture& image);
-};
+	GLuint vertexLoc;
+	GLuint texcoordLoc;
+	GLuint normalLoc;
+	GLuint colorLoc;
 
-struct Shader3D : public Shader {
-	//void(*prepareRenderCallback)(Model& image);
+	GLuint modelMatrixLoc;
+	GLuint diffuseColorLoc;
+	GLuint specularColorLoc;
+	GLuint ambientColorLoc;
+
+	GLuint mapTextureLoc0;
 };
 
 Shader loadShader(const GLchar* vertexfile, const GLchar* fragmentfile);
@@ -52,19 +56,19 @@ GLuint loadShaderFile(const GLchar* path, GLuint type);
 GLuint loadShaderString(const GLchar* string, GLuint type);
 GLint getUniformLocation(Shader* shader, const GLchar* name);
 //============================================||
-//			    	---------UNIFORM VARIABLE LOADING-----------				 ||
+// ---------UNIFORM VARIABLE LOADING--------- ||
 //============================================||
 void loadFloat(Shader* shader, const GLchar* name, GLfloat value);
 void loadFloatArray(Shader* shader, const GLchar* name, GLfloat arr[], int count);
 void loadInt(Shader* shader, const GLchar* name, GLint value);
 void loadIntArray(Shader* shader, const GLchar* name, GLint arr[], int count);
-void loadVec2f(Shader* shader, const GLchar* name, vec2 vec);
-void loadVec3f(Shader* shader, const GLchar* name, vec3 vec);
-void loadVec4f(Shader* shader, const GLchar* name, vec4 vec);
+void loadVec2(Shader* shader, const GLchar* name, vec2 vec);
+void loadVec3(Shader* shader, const GLchar* name, vec3 vec);
+void loadVec4(Shader* shader, const GLchar* name, vec4 vec);
 void loadBool(Shader* shader, const GLchar* name, bool value);
-void loadMat4f(Shader* shader, const GLchar* name, mat4 mat);
+void loadMat4(Shader* shader, const GLchar* name, mat4 mat);
 //============================================||
-//				---------UNIFORM VARIABLE LOADING-----------					 ||
+// ---------UNIFORM VARIABLE LOADING--------- ||
 //============================================||
 void startShader(Shader* shader);
 void stopShader();

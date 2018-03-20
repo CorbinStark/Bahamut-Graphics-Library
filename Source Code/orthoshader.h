@@ -30,7 +30,6 @@
 #define ORTHOSHADER_H
 
 #include "defines.h"
-#include <GL/glew.h>
 
 const GLchar* ORTHO_SHADER_FRAG_SHADER = R"FOO(
 #version 130
