@@ -47,46 +47,46 @@
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32
 
-void initWindow(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor);
+void init_window(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor);
 
-void setWindowPos(int x, int y);
-void setWindowSize(int width, int height);
-void beginDrawing();
-void endDrawing();
-bool isWindowClosed();
+void set_window_pos(int x, int y);
+void set_window_size(int width, int height);
+void begin_drawing();
+void end_drawing();
+bool is_window_closed();
 
-void setClearColor(float r, float g, float b, float a);
-void setClearColor(vec4 color);
-void setKeyCallback(void(*keyCallback)(int key, int action));
-void setMouseCallback(void(*mouseCallback)(double mousex, double mousey, int button, int action));
-void setWindowResizeCallback(void(*resizecallback)(int width, int height));
+void set_clear_color(float r, float g, float b, float a);
+void set_clear_color(vec4 color);
+void set_key_callback(void(*keyCallback)(int key, int action));
+void set_mouse_callback(void(*mouseCallback)(double mousex, double mousey, int button, int action));
+void set_window_resize_callback(void(*resizecallback)(int width, int height));
 
-bool isKeyPressed(unsigned int keycode);
-bool isKeyReleased(unsigned int keycode);
-bool isButtonPressed(unsigned int button);
-bool isButtonReleased(unsigned int button);
-bool isKeyDown(unsigned int keycode);
-bool isButtonDown(unsigned int button);
-bool isKeyUp(unsigned int keycode);
-bool isButtonUp(unsigned int button);
+bool is_key_pressed(unsigned int keycode);
+bool is_key_released(unsigned int keycode);
+bool is_button_pressed(unsigned int button);
+bool is_button_released(unsigned int button);
+bool is_key_down(unsigned int keycode);
+bool is_button_down(unsigned int button);
+bool is_key_up(unsigned int keycode);
+bool is_button_up(unsigned int button);
 
-double getElapsedTime();
+double get_elapsed_time();
 
-void getMousePos(double* mousex, double* mousey);
-vec2 getMousePos();
-void disposeWindow();
+void get_mouse_pos(double* mousex, double* mousey);
+vec2 get_mouse_pos();
+void dispose_window();
 
-void setFPSCap(double FPS);
+void set_FPS_cap(double FPS);
 
-void setMouseLocked(bool locked);
-void setMouseHidden(bool hidden);
-void setVSync(bool vsync);
+void set_mouse_locked(bool locked);
+void set_mouse_hidden(bool hidden);
+void set_vsync(bool vsync);
 
-void setVirtualSize(int v_width, int v_height);
-int getVirtualWidth();
-int getVirtualHeight();
-vec2 getVirtualSize();
-int getWindowWidth();
-int getWindowHeight();
+void set_virtual_size(int v_width, int v_height);
+int get_virtual_width();
+int get_virtual_height();
+vec2 get_virtual_size();
+int get_window_width();
+int get_window_height();
 
 #endif

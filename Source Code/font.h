@@ -49,11 +49,12 @@ struct Font {
 	int size;
 };
 
-Texture createTextureFromString(Font& font, const std::string str, GLubyte r = 0, GLubyte g = 0, GLubyte b = 0);
-Font loadFont(const GLchar* filepath, unsigned int size);
-void disposeFont(Font& font);
+Texture create_texture_from_string(Font& font, const std::string str);
+Texture create_texture_from_string(Font& font, const std::string str, GLubyte r, GLubyte g, GLubyte b);
+Font load_font(const GLchar* filepath, unsigned int size);
+void dispose_font(Font& font);
 
-inline const u32 getStringWidth(Font& font, const char* str) {
+inline const u32 get_string_width(Font& font, const char* str) {
 	u32 len = strlen(str);
 	u32 width = 0;
 	for (u32 i = 0; i < len; ++i) {
@@ -65,7 +66,7 @@ inline const u32 getStringWidth(Font& font, const char* str) {
 }
 
 //text must be less than 128 chars long.
-inline const char* formatText(const char* text, ...) {
+inline const char* format_text(const char* text, ...) {
 	static char buffer[MAX_FORMAT_TEXT_SIZE];
 
 	va_list args;

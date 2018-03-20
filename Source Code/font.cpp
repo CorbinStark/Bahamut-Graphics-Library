@@ -31,7 +31,7 @@
 #include <iostream>
 
 INTERNAL
-Character* getChar(Font& font, const GLchar c) {
+Character* get_char(Font& font, const GLchar c) {
 	try {
 		return font.characters[c];
 	}
@@ -41,11 +41,11 @@ Character* getChar(Font& font, const GLchar c) {
 }
 
 INTERNAL
-float getFontHeight(Font& font) {
-	return getChar(font, 'T')->bearing.y + (getChar(font, 'T')->size.y / 2);
+float get_font_height(Font& font) {
+	return get_char(font, 'T')->bearing.y + (get_char(font, 'T')->size.y / 2);
 }
 
-Font loadFont(const GLchar* filepath, unsigned int size) {
+Font load_font(const GLchar* filepath, unsigned int size) {
 	Font font;
 	font.size = size;
 	//load lib
@@ -117,7 +117,11 @@ Font loadFont(const GLchar* filepath, unsigned int size) {
 	return font;
 }
 
-Texture createTextureFromString(Font& font, const std::string str, GLubyte r, GLubyte g, GLubyte b) {
+Texture create_texture_from_string(Font& font, const std::string str) {
+	return create_texture_from_string(font, str, 0, 0, 0);
+}
+
+Texture create_texture_from_string(Font& font, const std::string str, GLubyte r, GLubyte g, GLubyte b) {
 	unsigned int w = 0;
 	unsigned int h = 0;
 
@@ -128,10 +132,10 @@ Texture createTextureFromString(Font& font, const std::string str, GLubyte r, GL
 			continue;
 		}
 		w += (font.face->glyph->advance.x >> 6);
-		h = getFontHeight(font);
-		if (str[i] == '\n') h += getFontHeight(font);
+		h = get_font_height(font);
+		if (str[i] == '\n') h += get_font_height(font);
 	}
-	h += getFontHeight(font) / 4;
+	h += get_font_height(font) / 4;
 	w += (font.face->glyph->advance.x >> 6);
 
 	//gen texture
@@ -157,14 +161,14 @@ Texture createTextureFromString(Font& font, const std::string str, GLubyte r, GL
 	for (auto i = 0; i < str.size(); ++i) {
 		if (str[i] == '\n') {
 			x = 0;
-			currentY += getFontHeight(font);
+			currentY += get_font_height(font);
 			xStart = true;
 			continue;
 		}
 		if (FT_Load_Char(font.face, str[i], FT_LOAD_RENDER))
 			continue;
 
-		int yOffset = (getChar(font, 'T')->bearing.y - font.face->glyph->bitmap_top) + 1;
+		int yOffset = (get_char(font, 'T')->bearing.y - font.face->glyph->bitmap_top) + 1;
 		if (yOffset < 0) yOffset = 0;
 
 		//width of character * height of character * 4 bytes-per-pixel (r,g,b,a)
@@ -204,9 +208,9 @@ Texture createTextureFromString(Font& font, const std::string str, GLubyte r, GL
 	return tex;
 }
 
-void disposeFont(Font& font) {
+void dispose_font(Font& font) {
 	for (int i = 0; i < 255; ++i) {
-		disposeTexture(font.characters[i]->texture);
+		dispose_texture(font.characters[i]->texture);
 		delete font.characters[i];
 	}
 	FT_Done_Face(font.face);

@@ -51,7 +51,7 @@ struct Component {
 class Entity {
 public:
 	template<class T, class... TArgs>
-	T* addComp(TArgs&&... mArgs) {
+	T* add_comp(TArgs&&... mArgs) {
 		if (getComp<T>() == NULL) {
 			auto result(new T(std::forward<TArgs>(mArgs)...));
 
@@ -66,7 +66,7 @@ public:
 	}
 
 	template<class T>
-	T* getComp() {
+	T* get_comp() {
 		try {
 			return static_cast<T*>(_components.at(&typeid(T)).get());
 		}
@@ -77,7 +77,7 @@ public:
 	}
 
 	template<class T>
-	void removeComp() {
+	void remove_comp() {
 		try {
 			_components.at(&typeid(T)).release();
 			_components.erase(&typeid(T));

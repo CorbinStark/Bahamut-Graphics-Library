@@ -32,7 +32,7 @@
 #include <AL/al.h>
 
 //INTERNAL VARIABLES
-INTERNAL u8 master_volume;
+INTERNAL u8 masterVolume;
 INTERNAL ALCcontext* context;
 
 struct SoundData {
@@ -105,7 +105,7 @@ SoundData loadMP3(const char* filename) {
 	return data;
 }
 
-void initAudio() {
+void init_audio() {
 	ALCdevice *device = alcOpenDevice(NULL);
 	if (!device)
 		BMT_LOG(FATAL_ERROR, "Could not open audio device!");
@@ -126,7 +126,7 @@ void initAudio() {
 	}
 }
 
-void disposeAudio() {
+void dispose_audio() {
 	ALCdevice *device = alcGetContextsDevice(context);
 
 	if (context == NULL)
@@ -139,16 +139,16 @@ void disposeAudio() {
 	BMT_LOG(INFO, "Audio device disposed.");
 }
 
-void setMasterVolume(u8 volume) {
-	master_volume = volume;
+void set_master_volume(u8 volume) {
+	masterVolume = volume;
 	alListenerf(AL_GAIN, (float)volume / 255.0f);
 }
 
-u8 getMasterVolume() {
-	return master_volume;
+u8 get_master_volume() {
+	return masterVolume;
 }
 
-Sound loadSound(const char* filename) {
+Sound load_sound(const char* filename) {
 	Sound sound;
 	SoundData data;
 
@@ -189,51 +189,51 @@ Sound loadSound(const char* filename) {
 	return sound;
 }
 
-void playSound(Sound sound) {
+void play_sound(Sound sound) {
 	alSourcePlay(sound.src);
 }
 
-void stopSound(Sound sound) {
+void stop_sound(Sound sound) {
 	alSourceStop(sound.src);
 }
 
-bool isSoundPlaying(Sound sound) {
+bool is_sound_playing(Sound sound) {
 	ALint state;
 	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
 	return state == AL_PLAYING;
 }
 
-bool isSoundPaused(Sound sound) {
+bool is_sound_paused(Sound sound) {
 	ALint state;
 	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
 	return state == AL_PAUSED;
 }
 
-bool isSoundStopped(Sound sound) {
+bool is_sound_stopped(Sound sound) {
 	ALint state;
 	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
 	return state == AL_STOPPED;
 }
 
-void setSoundVolume(Sound sound, u8 volume) {
+void set_sound_volume(Sound sound, u8 volume) {
 	alSourcef(sound.src, AL_GAIN, (float)volume / 255.0f);
 }
 
-void pauseSound(Sound sound) {
+void pause_sound(Sound sound) {
 	alSourcePause(sound.src);
 }
 
-void resumeSound(Sound sound) {
+void resume_sound(Sound sound) {
 	ALint state;
 	alGetSourcei(sound.src, AL_SOURCE_STATE, &state);
-	if (state == AL_PAUSED) playSound(sound);
+	if (state == AL_PAUSED) play_sound(sound);
 }
 
-void setSoundLooping(Sound sound, bool loop) {
+void set_sound_looping(Sound sound, bool loop) {
 	alSourcei(sound.src, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
 }
 
-void disposeSound(Sound& sound) {
+void dispose_sound(Sound& sound) {
 	alDeleteSources(1, &sound.src);
 	alDeleteBuffers(1, &sound.buffer);
 	sound.format = 0;

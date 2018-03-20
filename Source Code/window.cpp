@@ -91,7 +91,7 @@ INTERNAL
 void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
 	bmt_win.buttons[button] = action;
 	if (bmt_win.BMTMouseCallback != NULL)
-		bmt_win.BMTMouseCallback(getMousePos().x, getMousePos().y, button, action);
+		bmt_win.BMTMouseCallback(get_mouse_pos().x, get_mouse_pos().y, button, action);
 	//Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
 }
 
@@ -99,10 +99,10 @@ INTERNAL
 void resizeCallback(GLFWwindow* win, int width, int height) {
 	if (bmt_win.BMTResizeCallback != NULL)
 		bmt_win.BMTResizeCallback(width, height);
-	setWindowSize(width, height);
+	set_window_size(width, height);
 }
 
-void initWindow(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
+void init_window(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
 	bmt_win.width = width;
 	bmt_win.height = height;
 
@@ -141,7 +141,7 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 		}
 		bmt_win.x = bmt_win.y = 0;
 
-		setWindowSize(
+		set_window_size(
 			glfwGetVideoMode(glfwGetPrimaryMonitor())->width,
 			glfwGetVideoMode(glfwGetPrimaryMonitor())->height
 		);
@@ -200,29 +200,31 @@ void initWindow(int width, int height, const char* title, bool fullscreen, bool 
 	init3D();
 }
 
-void setWindowPos(int x, int y) {
+void set_window_pos(int x, int y) {
 	bmt_win.x = x;
 	bmt_win.y = y;
 	glfwSetWindowPos(bmt_win.glfw_window, x, y);
 }
 
-void setWindowSize(int width, int height) {
+void set_window_size(int width, int height) {
+	if (width < 1) width = 1;
+	if (height < 1) height = 1;
 	bmt_win.width = width;
 	bmt_win.height = height;
 	glfwSetWindowSize(bmt_win.glfw_window, width, height);
-	set2DRenderViewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
-	set3DRenderViewport(width, height);
+	set_2D_render_viewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
+	set_3D_render_viewport(width, height);
 }
 
-void setClearColor(float r, float g, float b, float a) {
+void set_clear_color(float r, float g, float b, float a) {
 	glClearColor(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
-void setClearColor(vec4 color) {
-	setClearColor(color.x, color.y, color.z, color.w);
+void set_clear_color(vec4 color) {
+	set_clear_color(color.x, color.y, color.z, color.w);
 }
 
-void beginDrawing() {
+void begin_drawing() {
 	bmt_win.currentTime = glfwGetTime();
 	bmt_win.updateTime = bmt_win.currentTime - bmt_win.previousTime;
 	bmt_win.previousTime = bmt_win.currentTime;
@@ -230,7 +232,7 @@ void beginDrawing() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void endDrawing() {
+void end_drawing() {
 	for (int i = 0; i < MAX_KEYS; ++i) {
 		bmt_win.keys[i] = -1;
 	}
@@ -278,108 +280,108 @@ void endDrawing() {
 	}
 }
 
-double getElapsedTime() {
+double get_elapsed_time() {
 	return glfwGetTime();
 }
 
-void setFPSCap(double FPS) {
+void set_FPS_cap(double FPS) {
 	if (FPS < 1) bmt_win.targetTime = 0.0;
 	else bmt_win.targetTime = 1.0 / FPS;
 }
 
-bool isWindowClosed() {
+bool is_window_closed() {
 	return glfwWindowShouldClose(bmt_win.glfw_window) == 1;
 }
 
-void setKeyCallback(void(*keyCallback)(int key, int action)) {
+void set_key_callback(void(*keyCallback)(int key, int action)) {
 	bmt_win.BMTKeyCallback = keyCallback;
 }
 
-void setMouseCallback(void(*mouseCallback)(double mousex, double mousey, int button, int action)) {
+void set_mouse_callback(void(*mouseCallback)(double mousex, double mousey, int button, int action)) {
 	bmt_win.BMTMouseCallback = mouseCallback;
 }
 
-void setWindowResizeCallback(void(*resizecallback)(int width, int height)) {
+void set_window_resize_callback(void(*resizecallback)(int width, int height)) {
 	bmt_win.BMTResizeCallback = resizecallback;
 }
 
-bool isKeyPressed(unsigned int keycode) {
+bool is_key_pressed(unsigned int keycode) {
 	if (bmt_win.keys[keycode] == GLFW_PRESS)
 		return true;
 	return false;
 }
 
-bool isKeyReleased(unsigned int keycode) {
+bool is_key_released(unsigned int keycode) {
 	if (bmt_win.keys[keycode] == GLFW_RELEASE) {
 		return true;
 	}
 	return false;
 }
 
-bool isButtonPressed(unsigned int button) {
+bool is_button_pressed(unsigned int button) {
 	if (bmt_win.buttons[button] == GLFW_PRESS) {
 		return true;
 	}
 	return false;
 }
 
-bool isButtonReleased(unsigned int button) {
+bool is_button_released(unsigned int button) {
 	if (bmt_win.buttons[button] == GLFW_RELEASE) {
 		return true;
 	}
 	return false;
 }
 
-bool isKeyDown(unsigned int keycode) {
+bool is_key_down(unsigned int keycode) {
 	if (glfwGetKey(bmt_win.glfw_window, keycode) == 1) {
 		return true;
 	}
 	return false;
 }
 
-bool isButtonDown(unsigned int button) {
+bool is_button_down(unsigned int button) {
 	if (glfwGetMouseButton(bmt_win.glfw_window, button) == 1) {
 		return true;
 	}
 	return false;
 }
 
-bool isKeyUp(unsigned int keycode) {
+bool is_key_up(unsigned int keycode) {
 	if (glfwGetKey(bmt_win.glfw_window, keycode) == 0) {
 		return true;
 	}
 	return false;
 }
 
-bool isButtonUp(unsigned int button) {
+bool is_button_up(unsigned int button) {
 	if (glfwGetMouseButton(bmt_win.glfw_window, button) == 0) {
 		return true;
 	}
 	return false;
 }
 
-void setVSync(bool vsync) {
+void set_vsync(bool vsync) {
 	if (vsync)
 		glfwSwapInterval(1);
 	else
 		glfwSwapInterval(0);
 }
 
-void getMousePos(double* mousex, double* mousey) {
+void get_mouse_pos(double* mousex, double* mousey) {
 	*mousex = bmt_win.mousex;
 	*mousey = bmt_win.mousey;
 	*mousex *= (float)bmt_win.virtual_width / (float)bmt_win.width;
 	*mousey *= (float)bmt_win.virtual_height / (float)bmt_win.height;
 }
 
-vec2 getMousePos() {
+vec2 get_mouse_pos() {
 	vec2 mouse_pos = V2((float)bmt_win.mousex, (float)bmt_win.mousey);
 	vec2 scale = V2((float)(bmt_win.virtual_width) / (float)(bmt_win.width), (float)(bmt_win.virtual_height) / (float)(bmt_win.height));
 	mouse_pos = mouse_pos * scale;
 	return mouse_pos;
 }
 
-void disposeWindow() {
+void dispose_window() {
 	glfwSetWindowShouldClose(bmt_win.glfw_window, true);
 	glfwDestroyWindow(bmt_win.glfw_window);
 	glfwDefaultWindowHints();
@@ -387,40 +389,40 @@ void disposeWindow() {
 	dispose2D();
 }
 
-void setMouseLocked(bool locked) {
+void set_mouse_locked(bool locked) {
 	bmt_win.locked = locked;
 }
 
-void setVirtualSize(int v_width, int v_height) {
+void set_virtual_size(int v_width, int v_height) {
 	bmt_win.virtual_width = v_width;
 	bmt_win.virtual_height = v_height;
 }
 
-int getVirtualWidth() {
+int get_virtual_width() {
 	return bmt_win.virtual_width;
 }
 
-int getVirtualHeight() {
+int get_virtual_height() {
 	return bmt_win.virtual_height;
 }
 
-vec2 getVirtualSize() {
+vec2 get_virtual_size() {
 	return V2((float)bmt_win.virtual_width, (float)bmt_win.virtual_height);
 }
 
-int getWindowWidth() {
+int get_window_width() {
 	int width;
 	glfwGetWindowSize(bmt_win.glfw_window, &width, 0);
 	return width;
 }
 
-int getWindowHeight() {
+int get_window_height() {
 	int height;
 	glfwGetWindowSize(bmt_win.glfw_window, 0, &height);
 	return height;
 }
 
-void setMouseHidden(bool hidden) {
+void set_mouse_hidden(bool hidden) {
 	bmt_win.hidden = hidden;
 	if (hidden)
 		glfwSetInputMode(bmt_win.glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);

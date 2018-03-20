@@ -36,6 +36,10 @@
 #include "shader.h"
 #include "texture.h"
 
+#ifndef MAX_MODELS
+#define MAX_MODELS 10000
+#endif
+
 struct Mesh {
 	u16 vertexCount;
 	GLuint vao;
@@ -56,13 +60,14 @@ struct Material {
 struct Model {
 	Mesh mesh;
 	Material material;
+	Texture texture;
 	vec3 pos;
 	vec3 rotate;
 	vec3 scale;
 };
 
-Model loadModel(const char* path);
-void disposeModel(Model& model);
+Model load_model(const char* path);
+void dispose_model(Model& model);
 
 void init3D();
 
@@ -71,12 +76,16 @@ void begin3D(Camera* camera);
 void begin3D(mat4 projection);
 void begin3D(Camera* camera, mat4 projection);
 
-void drawModel(Model& model);
-void drawCube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth);
-void drawSphere(f32 x, f32 y, f32 z, f32 radius);
-void drawBillboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture& tex);
-void drawPolygon();
+void draw_model(Model& model);
+void draw_cube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth);
+void draw_sphere(f32 x, f32 y, f32 z, f32 radius);
+void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex);
+void draw_polygon();
 
 void end3D();
+
+void set_3D_render_viewport(u32 width, u32 height);
+void set_FOV(f32 fieldOfView);
+f32 get_FOV();
 
 #endif

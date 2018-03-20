@@ -33,21 +33,21 @@
 INTERNAL GLuint vao;
 INTERNAL GLuint vbo;
 INTERNAL GLuint ebo;
-INTERNAL unsigned short indexcount;
-INTERNAL unsigned short texcount;
+INTERNAL u16 indexcount;
+INTERNAL u16 texcount;
 INTERNAL GLuint  textures[BATCH_MAX_TEXTURES];
 INTERNAL GLchar* locations[BATCH_MAX_TEXTURES];
 INTERNAL VertexData* buffer;
 
-INTERNAL StretchMode stretch_mode;
-INTERNAL AspectMode aspect_mode;
+INTERNAL StretchMode stretchMode;
+INTERNAL AspectMode aspectMode;
 
 INTERNAL Shader shader;
-INTERNAL mat4 ortho_projection;
-INTERNAL mat4 custom_projection;
-INTERNAL bool using_custom_projection;
+INTERNAL mat4 orthoProjection;
+INTERNAL mat4 customProjection;
+INTERNAL bool usingCustomProjection;
 
-INTERNAL Rect viewport_rect;
+INTERNAL Rect viewportRect;
 
 INTERNAL
 GLfloat DEFAULT_UVS[8] = {
@@ -71,7 +71,7 @@ GLfloat FLIP_BOTH_UVS[8] = {
 };
 
 INTERNAL 
-int submitTex(Texture tex) {
+int submit_tex(Texture tex) {
 	int texSlot = 0;
 	bool found = false;
 	for (int i = 0; i < texcount; ++i) {
@@ -93,13 +93,13 @@ int submitTex(Texture tex) {
 }
 
 void init2D(i32 x, i32 y, u32 width, u32 height) {
-	stretch_mode = STRETCH_NONE;
-	aspect_mode = ASPECT_NONE;
-	set2DRenderViewport(x, y, width, height, getVirtualWidth(), getVirtualHeight());
+	stretchMode = STRETCH_NONE;
+	aspectMode = ASPECT_NONE;
+	set_2D_render_viewport(x, y, width, height, get_virtual_width(), get_virtual_height());
 	texcount = indexcount = 0;
 
-	shader.vertexshaderID = loadShaderString(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
-	shader.fragshaderID = loadShaderString(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
+	shader.vertexshaderID = load_shader_string(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
+	shader.fragshaderID = load_shader_string(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
 	shader.ID = glCreateProgram();
 	glAttachShader(shader.ID, shader.vertexshaderID);
 	glAttachShader(shader.ID, shader.fragshaderID);
@@ -172,7 +172,7 @@ void init2D(i32 x, i32 y, u32 width, u32 height) {
 void begin2D() {
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
-	glViewport(viewport_rect.x, viewport_rect.y, viewport_rect.width, viewport_rect.height);
+	glViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
@@ -181,15 +181,15 @@ void begin2D() {
 }
 
 void begin2D(mat4 projection) {
-	custom_projection = projection;
-	using_custom_projection = true;
+	customProjection = projection;
+	usingCustomProjection = true;
 	begin2D();
 }
 
-void drawTexture(Texture tex, i32 xPos, i32 yPos) {
+void draw_texture(Texture tex, i32 xPos, i32 yPos) {
 	if (tex.ID == 0)
 		return;
-	int texSlot = submitTex(tex);
+	int texSlot = submit_tex(tex);
 	GLfloat* uvs;
 
 	uvs = DEFAULT_UVS;
@@ -247,7 +247,7 @@ void drawTexture(Texture tex, i32 xPos, i32 yPos) {
 	indexcount += 6;
 }
 
-void drawTexture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
+void draw_texture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
 	if (tex.ID == 0)
 		return;
 
@@ -256,7 +256,7 @@ void drawTexture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
 	b /= 255;
 	a /= 255;
 
-	int texSlot = submitTex(tex);
+	int texSlot = submit_tex(tex);
 	GLfloat* uvs;
 
 	uvs = DEFAULT_UVS;
@@ -314,16 +314,16 @@ void drawTexture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
 	indexcount += 6;
 }
 
-void drawTextureRot(Texture tex, i32 xPos, i32 yPos, f32 rotateDegree) {
+void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, f32 rotateDegree) {
 	float originX = xPos + (tex.width / 2.0f);
 	float originY = yPos + (tex.height / 2.0f);
-	drawTextureRot(tex, xPos, yPos, V2(originX, originY), rotateDegree);
+	draw_texture_rotated(tex, xPos, yPos, V2(originX, originY), rotateDegree);
 }
 
-void drawTextureRot(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation) {
+void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation) {
 	if (tex.ID == 0)
 		return;
-	int texSlot = submitTex(tex);
+	int texSlot = submit_tex(tex);
 	GLfloat* uvs;
 
 	uvs = DEFAULT_UVS;
@@ -407,7 +407,7 @@ void drawTextureRot(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation) 
 	indexcount += 6;
 }
 
-void drawTextureEX(Texture tex, Rect source, Rect dest) {
+void draw_texture_EX(Texture tex, Rect source, Rect dest) {
 	if (tex.ID == 0)
 		return;
 
@@ -422,7 +422,7 @@ void drawTextureEX(Texture tex, Rect source, Rect dest) {
 	EX_UVS[7] = source.y / tex.height;
 	GLfloat* uvs = EX_UVS;
 
-	int texSlot = submitTex(tex);
+	int texSlot = submit_tex(tex);
 
 	buffer->pos.x = dest.x;
 	buffer->pos.y = dest.y;
@@ -471,7 +471,7 @@ void drawTextureEX(Texture tex, Rect source, Rect dest) {
 	indexcount += 6;
 }
 
-void drawRectangle(i32 x, i32 y, u32 width, u32 height, f32 r, f32 g, f32 b, f32 a) {
+void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a) {
 	r /= 255.0f;
 	g /= 255.0f;
 	b /= 255.0f;
@@ -524,11 +524,11 @@ void drawRectangle(i32 x, i32 y, u32 width, u32 height, f32 r, f32 g, f32 b, f32
 	indexcount += 6;
 }
 
-void drawRectangle(i32 x, i32 y, u32 width, u32 height, vec4 color) {
-	float r = color.x / 255.0f;
-	float g = color.y / 255.0f;
-	float b = color.z / 255.0f;
-	float a = color.w / 255.0f;
+void draw_rectangle(i32 x, i32 y, i32 width, i32 height, vec4 color) {
+	f32 r = color.x / 255.0f;
+	f32 g = color.y / 255.0f;
+	f32 b = color.z / 255.0f;
+	f32 a = color.w / 255.0f;
 
 	buffer->pos.x = x;
 	buffer->pos.y = y;
@@ -577,7 +577,7 @@ void drawRectangle(i32 x, i32 y, u32 width, u32 height, vec4 color) {
 	indexcount += 6;
 }
 
-void drawText(Font& font, std::string str, i32 xPos, i32 yPos) {
+void draw_text(Font& font, std::string str, i32 xPos, i32 yPos) {
 	for (int i = 0; i < str.size(); ++i) {
 		Character* c = font.characters[str[i]];
 		int yOffset = (font.characters['T']->bearing.y - c->bearing.y) + 1;
@@ -586,12 +586,12 @@ void drawText(Font& font, std::string str, i32 xPos, i32 yPos) {
 		int x = xPos + c->bearing.x;
 		int y = yPos + yOffset;
 
-		drawTexture(font.characters[str[i]]->texture, x, y);
+		draw_texture(font.characters[str[i]]->texture, x, y);
 		xPos += (font.characters[str[i]]->advance >> 6);
 	}
 }
 
-void drawText(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b) {
+void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b) {
 	r /= 255;
 	g /= 255;
 	b /= 255;
@@ -605,7 +605,7 @@ void drawText(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32
 		int y = yPos + yOffset;
 
 		Texture tex = font.characters[str[i]]->texture;
-		int texSlot = submitTex(tex);
+		int texSlot = submit_tex(tex);
 		GLfloat* uvs;
 		uvs = DEFAULT_UVS;
 
@@ -662,18 +662,18 @@ void end2D() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	startShader(&shader);
-	if (using_custom_projection)
-		loadMat4(&shader, "pr_matrix", custom_projection);
+	start_shader(&shader);
+	if (usingCustomProjection)
+		load_mat4(&shader, "pr_matrix", customProjection);
 	else
-		loadMat4(&shader, "pr_matrix", ortho_projection);
-	using_custom_projection = false;
+		load_mat4(&shader, "pr_matrix", orthoProjection);
+	usingCustomProjection = false;
 
 	for (int i = 0; i < texcount; ++i) {
 		//if (textures[i] != 0) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		loadInt(&shader, locations[i], i);
+		load_int(&shader, locations[i], i);
 		//}
 	}
 
@@ -692,28 +692,28 @@ void end2D() {
 	glBindVertexArray(0);
 
 	for (int i = 0; i < texcount; ++i)
-		unbindTexture(textures[i]);
+		unbind_texture(textures[i]);
 
 	indexcount = 0;
 	texcount = 0;
 
-	stopShader();
+	stop_shader();
 }
 
-void setStretchMode(StretchMode mode) {
-	stretch_mode = mode;
+void set_stretch_mode(StretchMode mode) {
+	stretchMode = mode;
 }
 
-void setAspectMode(AspectMode mode) {
-	aspect_mode = mode;
+void set_aspect_mode(AspectMode mode) {
+	aspectMode = mode;
 }
 
-Rect getViewportRect() {
-	return viewport_rect;
+Rect get_viewport_rect() {
+	return viewportRect;
 }
 
 INTERNAL 
-void limitViewportToAspectRatio(f32 aspect, f32 screen_width, f32 screen_height) {
+void limit_viewport_to_aspect_ratio(f32 aspect, f32 screen_width, f32 screen_height) {
 	if (aspect == 0) aspect = 1;
 
 	i32 new_width = screen_width;
@@ -723,37 +723,37 @@ void limitViewportToAspectRatio(f32 aspect, f32 screen_width, f32 screen_height)
 		new_width = (i32)(screen_height * aspect);
 	}
 	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
-	viewport_rect = rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	viewportRect = rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
 }
 
-void set2DRenderViewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height) {
+void set_2D_render_viewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height) {
 	if (virtual_height == 0) virtual_height = 1;
 
-	if (stretch_mode == STRETCH_NONE) {
-		ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
-		setVirtualSize(width, height);
-		viewport_rect = rect(x, y, width, height);
-		if (aspect_mode == ASPECT_NONE) {
+	if (stretchMode == STRETCH_NONE) {
+		orthoProjection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
+		set_virtual_size(width, height);
+		viewportRect = rect(x, y, width, height);
+		if (aspectMode == ASPECT_NONE) {
 			glViewport(x, y, width, height);
 		}
-		if (aspect_mode == ASPECT_KEEP) {
+		if (aspectMode == ASPECT_KEEP) {
 			f32 aspect = (f32)virtual_width / (f32)virtual_height;
-			limitViewportToAspectRatio(aspect, width, height);
+			limit_viewport_to_aspect_ratio(aspect, width, height);
 		}
-		if (aspect_mode == ASPECT_KEEP_WIDTH) {
+		if (aspectMode == ASPECT_KEEP_WIDTH) {
 
 		}
-		if (aspect_mode == ASPECT_KEEP_HEIGHT) {
+		if (aspectMode == ASPECT_KEEP_HEIGHT) {
 
 		}
 	}
 
 	//TODO: Fix projection stretch
-	if (stretch_mode == STRETCH_PROJECTION) {
-		if (aspect_mode == ASPECT_NONE) {
-			ortho_projection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
+	if (stretchMode == STRETCH_PROJECTION) {
+		if (aspectMode == ASPECT_NONE) {
+			orthoProjection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
 		}
-		if (aspect_mode == ASPECT_KEEP) {
+		if (aspectMode == ASPECT_KEEP) {
 			f32 aspect = (f32)virtual_width / (f32)virtual_height;
 
 			i32 new_width = width;
@@ -762,36 +762,32 @@ void set2DRenderViewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width,
 				new_height = height;
 				new_width = (i32)(height * aspect);
 			}
-			ortho_projection = orthographic_projection((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
+			orthoProjection = orthographic_projection((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
 		}
 	}
 
-	if (stretch_mode == STRETCH_VIEWPORT) {
-		if (aspect_mode == ASPECT_NONE) {
+	if (stretchMode == STRETCH_VIEWPORT) {
+		if (aspectMode == ASPECT_NONE) {
 			glViewport(x, y, width, height);
 		}
-		if (aspect_mode == ASPECT_KEEP) {
-			float aspect = (float)virtual_width / (float)virtual_height;
-			limitViewportToAspectRatio(aspect, width, height);
+		if (aspectMode == ASPECT_KEEP) {
+			f32 aspect = (f32)virtual_width / (f32)virtual_height;
+			limit_viewport_to_aspect_ratio(aspect, width, height);
 		}
-		if (aspect_mode == ASPECT_KEEP_WIDTH) {
-			float aspect = (float)virtual_width / (float)virtual_height;
-			limitViewportToAspectRatio(aspect, width, height);
+		if (aspectMode == ASPECT_KEEP_WIDTH) {
+			f32 aspect = (f32)virtual_width / (f32)virtual_height;
+			limit_viewport_to_aspect_ratio(aspect, width, height);
 		}
-		if (aspect_mode == ASPECT_KEEP_HEIGHT) {
-			float aspect = (float)virtual_width / (float)virtual_height;
-			limitViewportToAspectRatio(aspect, width, height);
+		if (aspectMode == ASPECT_KEEP_HEIGHT) {
+			f32 aspect = (f32)virtual_width / (f32)virtual_height;
+			limit_viewport_to_aspect_ratio(aspect, width, height);
 		}
 	}
-}
-
-void attachShader2D(Shader shader_in) {
-	shader = shader_in;
 }
 
 void dispose2D() {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 	glDeleteBuffers(1, &ebo);
-	disposeShader(shader);
+	dispose_shader(shader);
 }

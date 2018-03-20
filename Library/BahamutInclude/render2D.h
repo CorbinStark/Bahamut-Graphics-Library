@@ -37,10 +37,13 @@ struct VertexData {
 	vec2 pos;
 	vec4 color; //32 bit color (8 for R, 8 for G, 8 for B, 8 for A)
 	vec2 uv;
-	float texid;
+	f32 texid;
 };
 
+#ifndef BATCH_MAX_SPRITES
 #define BATCH_MAX_SPRITES	    20000
+#endif
+
 #define BATCH_VERTEX_SIZE	    sizeof(VertexData)
 #define BATCH_SPRITE_SIZE	    BATCH_VERTEX_SIZE * 4
 #define BATCH_BUFFER_SIZE	    BATCH_SPRITE_SIZE * BATCH_MAX_SPRITES
@@ -67,7 +70,7 @@ enum AspectMode {
 //		-A rectangle (x, y, width, height) for the projection matrix (the viewport)
 //			of the render batch.
 //==========================================================================================
-void init2D(int x, int y, int width, int height);
+void init2D(i32 x, i32 y, u32 width, u32 height);
 //==========================================================================================
 //Description: Begins the renderer. You must do all draw calls in between
 //	begin2D and end2D.
@@ -86,7 +89,7 @@ void begin2D(Shader shader, mat4 projection);
 //Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
 //		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
 //==========================================================================================
-void drawTexture(Texture& tex, int xPos, int yPos);
+void draw_texture(Texture tex, i32 xPos, i32 yPos);
 //==========================================================================================
 //Description: Draws a texture onto the bound framebuffer (by default the window)
 //
@@ -99,16 +102,16 @@ void drawTexture(Texture& tex, int xPos, int yPos);
 //Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
 //		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
 //==========================================================================================
-void drawTexture(Texture& tex, int xPos, int yPos, float r, float g, float b, float a);
-void drawTextureRot(Texture& tex, int xPos, int yPos, float rotateDegree);
-void drawTextureRot(Texture& tex, int xPos, int yPos, vec2 origin, float rotation);
-void drawTextureEX(Texture& tex, Rect source, Rect dest);
-void drawTextureEX(Texture& tex, Rect source, Rect dest, vec2 origin);
-void drawRenderTexture(RenderTexture& tex, int xPos, int yPos);
-void drawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
-void drawRectangle(int x, int y, int width, int height, vec4 color);
-void drawText(Font& font, std::string str, int x, int y);
-void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g, float b);
+void draw_texture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a);
+void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, f32 rotateDegree);
+void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation);
+void draw_texture_EX(Texture tex, Rect source, Rect dest);
+void draw_texture_EX(Texture tex, Rect source, Rect dest, vec2 origin);
+void draw_render_texture(RenderTexture tex, i32 xPos, i32 yPos);
+void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a);
+void draw_rectangle(i32 x, i32 y, i32 width, i32 height, vec4 color);
+void draw_text(Font& font, std::string str, i32 x, i32 y);
+void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b);
 //===============================================================================
 //Description: Ends and flushes the renderer. You must do all draw calls in between
 //	begin2D and end2D.
@@ -116,18 +119,16 @@ void drawText(Font& font, std::string str, int xPos, int yPos, float r, float g,
 void end2D();
 
 //StretchMode only applies to 2D
-void setStretchMode(StretchMode mode);
+void set_stretch_mode(StretchMode mode);
 //AspectMode only applies to 2D
-void setAspectMode(AspectMode mode);
+void set_aspect_mode(AspectMode mode);
 
-Rect getViewportRect();
-
-void set2DRenderViewport(int x, int y, int width, int height, int virtual_width, int virtual_height);
-void attachShader2D(Shader shader);
+Rect get_viewport_rect();
+void set_2D_render_viewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height);
 
 void dispose2D();
 
-GLuint inline rgbaToUint(int r, int g, int b, int a) {
+u32 inline rgba_to_u32(i32 r, i32 g, i32 b, i32 a) {
 	return a << 24 | b << 16 | g << 8 | r;
 }
 

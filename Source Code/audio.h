@@ -37,24 +37,24 @@ struct Sound {
 	GLint format;
 };
 
-void initAudio();
-void disposeAudio();
+void init_audio();
+void dispose_audio();
 
-void setMasterVolume(u8 volume);
-u8 getMasterVolume();
+void set_master_volume(u8 volume);
+u8 get_master_volume();
 
-Sound loadSound(const char* filename);
+Sound load_sound(const char* filename);
 
-bool isSoundPlaying(Sound sound);
-bool isSoundPaused(Sound sound);
-bool isSoundStopped(Sound sound);
-void setSoundVolume(Sound sound, u8 volume);
-void playSound(Sound sound);
-void stopSound(Sound sound);
-void pauseSound(Sound sound);
-void resumeSound(Sound sound);
-void setSoundLooping(Sound sound, bool loop);
+bool is_sound_playing(Sound sound);
+bool is_sound_paused(Sound sound);
+bool is_sound_stopped(Sound sound);
+void set_sound_volume(Sound sound, u8 volume);
+void play_sound(Sound sound);
+void stop_sound(Sound sound);
+void pause_sound(Sound sound);
+void resume_sound(Sound sound);
+void set_sound_looping(Sound sound, bool loop);
 
-void disposeSound(Sound& sound);
+void dispose_sound(Sound& sound);
 
 #endif

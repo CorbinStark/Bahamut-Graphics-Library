@@ -96,7 +96,7 @@ inline void BMT_LOG(u8 TYPE, const char* format, ...) {
 #endif
 
 INTERNAL
-inline char *duplicateString(const char *s) {
+inline char *duplicate_string(const char *s) {
 	char *d = (char*)malloc(strlen(s) + 1);
 	if (d == NULL) return NULL;
 	strcpy(d, s);
@@ -104,9 +104,9 @@ inline char *duplicateString(const char *s) {
 }
 
 INTERNAL
-inline char** splitString(const char* string, const char* seperator, u32* numTokens) {
+inline char** split_string(const char* string, const char* seperator, u32* numTokens) {
 	char** tokens;
-	char* s = duplicateString(string);
+	char* s = duplicate_string(string);
 
 	u32 tokens_allocated = 1;
 	u32 tokens_used = 0;
@@ -118,7 +118,7 @@ inline char** splitString(const char* string, const char* seperator, u32* numTok
 			tokens_allocated *= 2;
 			tokens = (char**)realloc(tokens, tokens_allocated * sizeof(char*));
 		}
-		tokens[tokens_used++] = duplicateString(token);
+		tokens[tokens_used++] = duplicate_string(token);
 	}
 	if (tokens_used == 0) {
 		free(tokens);
@@ -130,6 +130,22 @@ inline char** splitString(const char* string, const char* seperator, u32* numTok
 	*numTokens = tokens_used;
 	free(s);
 	return tokens;
+}
+
+INTERNAL
+inline bool has_extension(const char* filename, const char* extension) {
+	u32 numTokens = 0;
+	char** tokens;
+	tokens = split_string(filename, ".", &numTokens);
+	bool answer = strcmp(tokens[numTokens - 1], extension) == 0;
+
+	for (u8 i = 0; i < numTokens; ++i)
+		if (tokens[i] != NULL)
+			free(tokens[i]);
+	if (tokens != NULL)
+		free(tokens);
+
+	return answer;
 }
 
 INTERNAL
@@ -192,7 +208,7 @@ inline Rect rect(float x, float y, float width, float height) {
 }
 
 INTERNAL
-inline bool colliding(Rect& first, Rect& second) {
+inline bool colliding(Rect first, Rect second) {
 	if (first.x + first.width >= second.x && first.x <= second.x + second.width) {
 		if (first.y <= second.y + second.height && first.y + first.height >= second.y) {
 			return true;
@@ -202,7 +218,7 @@ inline bool colliding(Rect& first, Rect& second) {
 }
 
 INTERNAL
-inline bool colliding(Rect& rect, float x, float y, float width, float height) {
+inline bool colliding(Rect rect, float x, float y, float width, float height) {
 	if (rect.x + rect.width >= x && rect.x <= x + width) {
 		if (rect.y <= y + height && rect.y + rect.height >= y) {
 			return true;
@@ -212,7 +228,7 @@ inline bool colliding(Rect& rect, float x, float y, float width, float height) {
 }
 
 INTERNAL
-inline bool colliding(Rect& rect, f32 x, f32 y) {
+inline bool colliding(Rect rect, f32 x, f32 y) {
 	if (rect.x + rect.width >= x && rect.x <= x + 1) {
 		if (rect.y <= y + 1 && rect.y + rect.height >= y) {
 			return true;

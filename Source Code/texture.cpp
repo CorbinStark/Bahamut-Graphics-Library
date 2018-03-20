@@ -52,7 +52,7 @@ INTERNAL TexData* loaded_textures = (TexData*)malloc(loaded_textures_size * size
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Texture createBlankTexture(u32 width, u32 height) {
+Texture create_blank_texture(u32 width, u32 height) {
 	Texture texture;
 	glGenTextures(1, &texture.ID);
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
@@ -69,7 +69,7 @@ Texture createBlankTexture(u32 width, u32 height) {
 	return texture;
 }
 
-Texture loadTexture(unsigned char* pixels, u32 width, u32 height, u16 param) {
+Texture load_texture(unsigned char* pixels, u32 width, u32 height, u16 param) {
 	Texture texture;
 	texture.width = width;
 	texture.height = height;
@@ -87,7 +87,7 @@ Texture loadTexture(unsigned char* pixels, u32 width, u32 height, u16 param) {
 	return texture;
 }
 
-Texture loadTexture(const char* filepath, u16 param) {
+Texture load_texture(const char* filepath, u16 param) {
 #if defined(_PREVENT_MULTIPLE_TEXTURES)
 	for (u16 i = 0; i < num_loaded_textures; ++i) {
 		if (strcmp(loaded_textures[i].identifier, filepath) == 0) {
@@ -124,7 +124,7 @@ Texture loadTexture(const char* filepath, u16 param) {
 
 	} else {
 		BMT_LOG(WARNING, "[%s] Texture could not be loaded! Disposing and returning blank texture.", filepath);
-		disposeTexture(texture);
+		dispose_texture(texture);
 	}
 	SOIL_free_image_data(image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -137,7 +137,7 @@ Texture loadTexture(const char* filepath, u16 param) {
 	return texture;
 }
 
-void disposeTexture(Texture& texture) {
+void dispose_texture(Texture& texture) {
 #if defined(_PREVENT_MULTIPLE_TEXTURES)
 	for (u16 i = 0; i < num_loaded_textures; ++i) {
 		if (texture.ID == loaded_textures[i].texture.ID) {
@@ -152,29 +152,29 @@ void disposeTexture(Texture& texture) {
 	texture.ID = 0;
 }
 
-void blitTexture(Texture src, Texture dest, Rect drawFrom, Rect drawTo) {
+void blit_texture(Texture src, Texture dest, Rect drawFrom, Rect drawTo) {
 
 }
 
-void setTexturePixels(Texture texture, unsigned char* pixels, u32 width, u32 height) {
+void set_texture_pixels(Texture texture, unsigned char* pixels, u32 width, u32 height) {
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
-void setTexturePixelsFromFile(Texture texture, std::string filepath) {
+void set_texture_pixels_from_file(Texture texture, const char* filepath) {
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
-	unsigned char* image = SOIL_load_image(filepath.c_str(), &texture.width, &texture.height, 0, SOIL_LOAD_RGBA);
+	unsigned char* image = SOIL_load_image(filepath, &texture.width, &texture.height, 0, SOIL_LOAD_RGBA);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void bindTexture(Texture texture, u32 slot) {
+void bind_texture(Texture texture, u32 slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 }
 
-void unbindTexture(u32 slot) {
+void unbind_texture(u32 slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

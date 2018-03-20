@@ -51,7 +51,7 @@ INTERNAL f32 FOV;
 INTERNAL f32 aspectRatio;
 
 INTERNAL
-void bindMesh(Mesh mesh) {
+void bind_mesh(Mesh mesh) {
 	glBindVertexArray(mesh.vao);
 	glEnableVertexAttribArray(0);	//vertices location
 	glEnableVertexAttribArray(1);	//texture coords location
@@ -59,7 +59,7 @@ void bindMesh(Mesh mesh) {
 }
 
 INTERNAL 
-void unbindMesh() {
+void unbind_mesh() {
 	glDisableVertexAttribArray(2);	//normals location
 	glDisableVertexAttribArray(1);	//texture coords location
 	glDisableVertexAttribArray(0);	//vertices location
@@ -88,7 +88,7 @@ Mesh loadOBJ(const char* path) {
 	}
 }
 
-Model loadModel(const char* path) {
+Model load_model(const char* path) {
 	Model model = { 0 };
 	Mesh mesh = { 0 };
 
@@ -102,7 +102,7 @@ Model loadModel(const char* path) {
 	return model;
 }
 
-void disposeModel(Model& model) {
+void dispose_model(Model& model) {
 
 }
 
@@ -113,14 +113,14 @@ void init3D() {
 	usingCustomProjection = false;
 	customProjection = identity();
 	FOV = 90;
-	aspectRatio = getWindowWidth() / getWindowHeight();
+	aspectRatio = get_window_width() / get_window_height();
 	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
 }
 
 void begin3D() {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, getWindowWidth(), getWindowHeight());
+	glViewport(0, 0, get_window_width(), get_window_height());
 	drawPool.clear();
 }
 
@@ -142,26 +142,26 @@ void begin3D(Camera* camera, mat4 projection) {
 	begin3D();
 }
 
-void drawModel(Model& model) {
+void draw_model(Model& model) {
 	drawPool[model.material.shader.ID].push_back(&model);
 }
 
-void drawCube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth) {
+void draw_cube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth) {
 	//create cubeMesh
 	//drawPool.emplace(std::pair<Mesh*, Model*>(&cubeMesh, &cubeModel));
 }
 
-void drawSphere(f32 x, f32 y, f32 z, f32 radius) {
+void draw_sphere(f32 x, f32 y, f32 z, f32 radius) {
 	//create sphereMesh
 	//drawPool.emplace(std::pair<Mesh*, Model*>(&sphereMesh, &sphereModel));
 }
 
-void drawBillboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex) {
+void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex) {
 	//boardModel.texture = tex;
 	//drawPool.emplace(std::pair<Mesh*, Model*>(&boardMesh, &boardModel));
 }
 
-void drawPolygon() {
+void draw_polygon() {
 
 }
 
@@ -172,42 +172,42 @@ void end3D() {
 	for (auto current : drawPool) {
 		std::vector<Model*>* modelList = &current.second;
 		Shader* currShader = &modelList->at(0)->material.shader;
-		startShader(currShader);
+		start_shader(currShader);
 		//if (cam != NULL) loadMat4(currShader, "vw_matrix", create_view_matrix(*cam));
-		loadMat4(currShader, "projection_matrix", perspective);
+		load_mat4(currShader, "projection_matrix", perspective);
 
 		for (u16 i = 0; i < modelList->size(); ++i) {
 			Model* currentModel = modelList->at(i);
-			bindMesh(currentModel->mesh);
-			bindTexture(currentModel->texture, 0);
+			bind_mesh(currentModel->mesh);
+			bind_texture(currentModel->texture, 0);
 
-			loadMat4(
+			load_mat4(
 				currShader,
 				"transformation_matrix",
 				create_transformation_matrix(currentModel->pos, currentModel->rotate, currentModel->scale)
 			);
 
-			unbindTexture(0);
-			unbindMesh();
+			unbind_texture(0);
+			unbind_mesh();
 		}
 
-		stopShader();
+		stop_shader();
 	}
 }
 
-void set3DRenderViewport(u32 width, u32 height) {
-	glViewport(0, 0, getWindowWidth(), getWindowHeight());
-	aspectRatio = getWindowWidth() / getWindowHeight();
+void set_3D_render_viewport(u32 width, u32 height) {
+	glViewport(0, 0, get_window_width(), get_window_height());
+	aspectRatio = get_window_width() / get_window_height();
 	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
 
 }
 
-void setFOV(f32 fieldOfView) {
+void set_FOV(f32 fieldOfView) {
 	FOV = fieldOfView;
-	aspectRatio = getWindowWidth() / getWindowHeight();
+	aspectRatio = get_window_width() / get_window_height();
 	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
 }
 
-f32 getFOV() {
+f32 get_FOV() {
 	return FOV;
 }

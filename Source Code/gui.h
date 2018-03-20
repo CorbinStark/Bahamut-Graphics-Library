@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// FILE:                     bahamut.cpp                                 //
+// FILE:                         gui.h                                   //
 ///////////////////////////////////////////////////////////////////////////
 //                      BAHAMUT GRAPHICS LIBRARY                         //
 //                        Author: Corbin Stark                           //
@@ -26,12 +26,24 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                //
 ///////////////////////////////////////////////////////////////////////////
 
-#include "bahamut.h"
-#include <iostream>
+#ifndef GUI_H
+#define GUI_H
 
-void setDepthTesting(bool testing) {
-	if (testing)
-		glEnable(GL_DEPTH_TEST);
-	else
-		glDisable(GL_DEPTH_TEST);
-}
+#include "defines.h"
+#include "bahamut.h"
+
+void beginGUI();
+
+void endGUI();
+
+struct NinePatchRect {
+	Texture tex;
+	vec2 tile_size;
+	enum StretchType {
+		STRETCH_TILE,
+		STRETCH_SCALE
+	};
+	StretchType type;
+};
+
+#endif

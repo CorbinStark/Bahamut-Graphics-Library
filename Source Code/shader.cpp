@@ -31,7 +31,7 @@
 #include <iostream>
 #include <vector>
 
-GLint getUniformLocation(Shader* shader, const GLchar* name) {
+GLint get_uniform_location(Shader* shader, const GLchar* name) {
 	//GLint location = 0;
 	//try {
 	//	location = _locations.get(name);
@@ -43,10 +43,10 @@ GLint getUniformLocation(Shader* shader, const GLchar* name) {
 	return glGetUniformLocation(shader->ID, name);
 }
 
-Shader loadShader(const GLchar* vertexfile, const GLchar* fragmentfile) {
+Shader load_shader(const GLchar* vertexfile, const GLchar* fragmentfile) {
 	Shader shader;
-	shader.vertexshaderID = loadShaderFile(vertexfile, GL_VERTEX_SHADER);
-	shader.fragshaderID = loadShaderFile(fragmentfile, GL_FRAGMENT_SHADER);
+	shader.vertexshaderID = load_shader_file(vertexfile, GL_VERTEX_SHADER);
+	shader.fragshaderID = load_shader_file(fragmentfile, GL_FRAGMENT_SHADER);
 
 	shader.ID = glCreateProgram();
 	glAttachShader(shader.ID, shader.vertexshaderID);
@@ -58,10 +58,10 @@ Shader loadShader(const GLchar* vertexfile, const GLchar* fragmentfile) {
 	return shader;
 }
 
-Shader loadShaderFromStrings(const GLchar* vertexstring, const GLchar* fragmentstring) {
+Shader load_shader_from_strings(const GLchar* vertexstring, const GLchar* fragmentstring) {
 	Shader shader;
-	shader.vertexshaderID = loadShaderString(vertexstring, GL_VERTEX_SHADER);
-	shader.fragshaderID = loadShaderString(fragmentstring, GL_FRAGMENT_SHADER);
+	shader.vertexshaderID = load_shader_string(vertexstring, GL_VERTEX_SHADER);
+	shader.fragshaderID = load_shader_string(fragmentstring, GL_FRAGMENT_SHADER);
 
 	shader.ID = glCreateProgram();
 	glAttachShader(shader.ID, shader.vertexshaderID);
@@ -73,56 +73,56 @@ Shader loadShaderFromStrings(const GLchar* vertexstring, const GLchar* fragments
 	return shader;
 }
 
-void loadFloat(Shader* shader, const GLchar* name, GLfloat value) {
-	GLint location = getUniformLocation(shader, name);
+void load_float(Shader* shader, const GLchar* name, GLfloat value) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform1f(location, value);
 }
 
-void loadFloatArray(Shader* shader, const GLchar* name, GLfloat arr[], int count) {
-	GLint location = getUniformLocation(shader, name);
+void load_float_array(Shader* shader, const GLchar* name, GLfloat arr[], int count) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform1fv(location, count, arr);
 }
 
-void loadInt(Shader* shader, const GLchar* name, GLint value) {
-	GLint location = getUniformLocation(shader, name);
+void load_int(Shader* shader, const GLchar* name, GLint value) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform1i(location, value);
 }
 
-void loadIntArray(Shader* shader, const GLchar* name, GLint arr[], int count) {
-	GLint location = getUniformLocation(shader, name);
+void load_int_array(Shader* shader, const GLchar* name, GLint arr[], int count) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform1iv(location, count, arr);
 }
 
-void loadVec2(Shader* shader, const GLchar* name, vec2 vec) {
-	GLint location = getUniformLocation(shader, name);
+void load_vec2(Shader* shader, const GLchar* name, vec2 vec) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform2f(location, vec.x, vec.y);
 }
 
-void loadVec3(Shader* shader, const GLchar* name, vec3 vec) {
-	GLint location = getUniformLocation(shader, name);
+void load_vec3(Shader* shader, const GLchar* name, vec3 vec) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform3f(location, vec.x, vec.y, vec.z);
 }
 
-void loadVec4(Shader* shader, const GLchar* name, vec4 vec) {
-	GLint location = getUniformLocation(shader, name);
+void load_vec4(Shader* shader, const GLchar* name, vec4 vec) {
+	GLint location = get_uniform_location(shader, name);
 	glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
 }
 
-void loadBool(Shader* shader, const GLchar* name, bool value) {
+void load_bool(Shader* shader, const GLchar* name, bool value) {
 	int boolean = 0;
 	if (value)
 		boolean = 1;
 
-	GLint location = getUniformLocation(shader, name);
+	GLint location = get_uniform_location(shader, name);
 	glUniform1f((GLfloat)location, boolean);
 }
 
-void loadMat4(Shader* shader, const GLchar* name, mat4 mat) {
-	GLint location = getUniformLocation(shader, name);
+void load_mat4(Shader* shader, const GLchar* name, mat4 mat) {
+	GLint location = get_uniform_location(shader, name);
 	glUniformMatrix4fv(location, 1, GL_FALSE, mat.elements);
 }
 
-GLuint loadShaderFile(const GLchar* filename, GLuint type) {
+GLuint load_shader_file(const GLchar* filename, GLuint type) {
 	int shaderID = glCreateShader(type);
 
 	const GLchar* shaderSource = read_file(filename);
@@ -151,7 +151,7 @@ GLuint loadShaderFile(const GLchar* filename, GLuint type) {
 	return shaderID;
 }
 
-GLuint loadShaderString(const GLchar* shaderSource, GLuint type) {
+GLuint load_shader_string(const GLchar* shaderSource, GLuint type) {
 	int shaderID = glCreateShader(type);
 
 	glShaderSource(shaderID, 1, &shaderSource, NULL);
@@ -176,15 +176,15 @@ GLuint loadShaderString(const GLchar* shaderSource, GLuint type) {
 	return shaderID;
 }
 
-void startShader(Shader* shader) {
+void start_shader(Shader* shader) {
 	glUseProgram(shader->ID);
 }
 
-void stopShader() {
+void stop_shader() {
 	glUseProgram(0);
 }
 
-void disposeShader(Shader shader) {
+void dispose_shader(Shader shader) {
 	glDeleteShader(shader.fragshaderID);
 	glDeleteShader(shader.vertexshaderID);
 	glDeleteProgram(shader.ID);

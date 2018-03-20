@@ -120,7 +120,7 @@ inline vec4 V4(f32 x, f32 y, f32 z, f32 w) {
 }
 
 INTERNAL
-inline f32 length(vec2& vec) {
+inline f32 length(vec2 vec) {
 #ifdef USE_SEE
 	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(SimdReals, SimdReals, 0x71)));
 #else
@@ -279,7 +279,7 @@ inline mat4 identity() {
 }
 
 INTERNAL
-inline mat4 operator*(const mat4& a, const mat4& b) {
+inline mat4 operator*(const mat4 a, const mat4 b) {
 	mat4 c = {};
 	f32 data[4 * 4];
 	for (u8 y = 0; y < 4; ++y) {
@@ -296,7 +296,7 @@ inline mat4 operator*(const mat4& a, const mat4& b) {
 }
 
 INTERNAL
-inline void operator*=(mat4& a, mat4& b) {
+inline void operator*=(mat4 a, mat4 b) {
 	f32 data[4 * 4];
 	for (u8 y = 0; y < 4; ++y) {
 		for (u8 x = 0; x < 4; ++x) {
@@ -311,14 +311,6 @@ inline void operator*=(mat4& a, mat4& b) {
 }
 
 //TODO: replace everything like "mat.elements[0 + 3 * 4]" with "mat.m03"
-INTERNAL
-inline mat4 translation(const vec3& translation) {
-	mat4 mat = identity();
-	mat.elements[0 + 3 * 4] = translation.x;
-	mat.elements[1 + 3 * 4] = translation.y;
-	mat.elements[2 + 3 * 4] = translation.z;
-	return mat;
-}
 
 INTERNAL
 inline mat4 translation(const f32 x, const f32 y, const f32 z) {
@@ -330,13 +322,8 @@ inline mat4 translation(const f32 x, const f32 y, const f32 z) {
 }
 
 INTERNAL
-inline mat4 scale(const vec3& scale) {
-	mat4 mat = { 0 };
-	mat.elements[0 + 0 * 4] = scale.x;
-	mat.elements[1 + 1 * 4] = scale.y;
-	mat.elements[2 + 2 * 4] = scale.z;
-	mat.elements[3 + 3 * 4] = 1.0f;
-	return mat;
+inline mat4 translation(const vec3 translation_vec) {
+	return translation(translation_vec.x, translation_vec.y, translation_vec.z);
 }
 
 INTERNAL
@@ -347,6 +334,12 @@ inline mat4 scale(const f32 x, const f32 y, const f32 z) {
 	mat.elements[2 + 2 * 4] = z;
 	mat.elements[3 + 3 * 4] = 1.0f;
 	return mat;
+}
+
+
+INTERNAL
+inline mat4 scale(const vec3& scale_vec) {
+	return scale(scale_vec.x, scale_vec.y, scale_vec.z);
 }
 
 INTERNAL
@@ -413,7 +406,7 @@ inline mat4 rotation(f32 angle, f32 x, f32 y, f32 z) {
 }
 
 INTERNAL
-inline mat4 rotation(f32 angle, const vec3& axis) {
+inline mat4 rotation(f32 angle, const vec3 axis) {
 	return rotation(angle, axis.x, axis.y, axis.z);
 }
 
@@ -456,7 +449,7 @@ inline mat4 create_transformation_matrix(f32 x, f32 y, f32 z, f32 rotX, f32 rotY
 }
 
 INTERNAL
-inline mat4 create_transformation_matrix(const vec3& translation, const vec3& rotation, const vec3& scale_vec) {
+inline mat4 create_transformation_matrix(const vec3 translation, const vec3 rotation, const vec3 scale_vec) {
 	return create_transformation_matrix(
 		translation.x, translation.y, translation.z,
 		rotation.x, rotation.y, rotation.z,
