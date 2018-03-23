@@ -68,6 +68,8 @@ void unbind_mesh() {
 
 INTERNAL
 Mesh loadOBJ(const char* path) {
+	Mesh mesh = { 0 };
+
 	std::ifstream file(path);
 	if (!file) {
 		BMT_LOG(WARNING, "[%s] Path to .obj could not be opened!");
@@ -86,6 +88,20 @@ Mesh loadOBJ(const char* path) {
 	while (true) {
 
 	}
+
+	return mesh;
+}
+
+INTERNAL
+Mesh load3DS(const char* path) {
+	Mesh mesh = { 0 };
+	return mesh;
+}
+
+INTERNAL
+Mesh loadFBX(const char* path) {
+	Mesh mesh = { 0 };
+	return mesh;
 }
 
 Model load_model(const char* path) {
@@ -93,12 +109,12 @@ Model load_model(const char* path) {
 	Mesh mesh = { 0 };
 
 	if (has_extension(path, "obj"))			mesh = loadOBJ(path);
-	//else if (has_extension(path, "ogg"))  mesh = loadOGG(filename);
-	//else if (has_extension(path, "flac")) mesh = loadFLAC(filename);
-	//else if (has_extension(path, "mp3"))  mesh = loadMP3(filename);
+	else if (has_extension(path, "3DS"))	mesh = load3DS(path);
+	else if (has_extension(path, "FBX"))	mesh = loadFBX(path);
 	else {
 		BMT_LOG(WARNING, "[%s] Extension not supported!", path);
 	}
+
 	return model;
 }
 

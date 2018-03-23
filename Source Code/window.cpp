@@ -33,36 +33,38 @@
 #include <iostream>
 #include <thread>
 
-struct BMTWindow {
-	GLFWwindow* glfw_window;
-	int x;
-	int y;
-	int width;
-	int height;
-	int virtual_width;
-	int virtual_height;
-	double mousex;
-	double mousey;
+INTERNAL GLFWwindow* glfw_window;
+INTERNAL int x;
+INTERNAL int y;
+INTERNAL int width;
+INTERNAL int height;
+INTERNAL int virtual_width;
+INTERNAL int virtual_height;
+INTERNAL double mousex;
+INTERNAL double mousey;
 
-	bool hidden;
-	bool locked;
+INTERNAL bool hidden;
+INTERNAL bool locked;
 
-	double targetFPS;
+INTERNAL double targetFPS;
 
-	const char* title;
-	int keys[MAX_KEYS];
-	int buttons[MAX_BUTTONS];
+INTERNAL const char* title;
+INTERNAL int keys[MAX_KEYS];
+INTERNAL int buttons[MAX_BUTTONS];
 
-	double currentTime, previousTime;
-	double updateTime, drawTime;
-	double frameTime = 0.0;
-	double targetTime = 0.0;
+INTERNAL double currentTime, previousTime;
+INTERNAL double updateTime, drawTime;
+INTERNAL double frameTime = 0.0;
+INTERNAL double targetTime = 0.0;
 
-	void(*BMTKeyCallback)(int key, int action);
-	void(*BMTMouseCallback)(double mousex, double mousey, int button, int action);
-	void(*BMTResizeCallback)(int width, int height);
-};
-INTERNAL BMTWindow bmt_win;
+INTERNAL void(*BMTKeyCallback)(int key, int action);
+INTERNAL void(*BMTMouseCallback)(double mousex, double mousey, int button, int action);
+INTERNAL void(*BMTResizeCallback)(int width, int height);
+
+INTERNAL int lastKeyPressed;
+INTERNAL int lastButtonPressed;
+INTERNAL int lastKeyReleased;
+INTERNAL int lastButtonReleased;
 
 INTERNAL
 void rebuildState() {
@@ -74,40 +76,57 @@ void rebuildState() {
 //TODO: implement the GUI into this engine.
 INTERNAL
 void keycallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
-	bmt_win.keys[key] = action;
-	if(bmt_win.BMTKeyCallback != NULL)
-		bmt_win.BMTKeyCallback(key, action);
+	keys[key] = action;
+	if (BMTKeyCallback != NULL)
+		BMTKeyCallback(key, action);
 	//Panel::key_callback_func(key, action);
+
+	if (action == GLFW_PRESS)
+		lastKeyPressed = key;
+	else if (action == GLFW_RELEASE)
+		lastKeyReleased = key;
+}
+
+INTERNAL
+void char_callback(GLFWwindow* win, unsigned int key) {
+	lastKeyPressed = key;
 }
 
 INTERNAL
 void cursorPosCallback(GLFWwindow* win, double xPos, double yPos) {
-	bmt_win.mousex = xPos;
-	bmt_win.mousey = yPos;
+	mousex = xPos;
+	mousey = yPos;
 	//Panel::mouse_pos_callback_func(xPos, yPos);
 }
 
 INTERNAL
 void mouseButtonCallback(GLFWwindow* win, int button, int action, int mods) {
-	bmt_win.buttons[button] = action;
-	if (bmt_win.BMTMouseCallback != NULL)
-		bmt_win.BMTMouseCallback(get_mouse_pos().x, get_mouse_pos().y, button, action);
-	//Panel::mouse_callback_func(button, action, bmt_win.mousex, bmt_win.mousey);
+	buttons[button] = action;
+	if (BMTMouseCallback != NULL)
+		BMTMouseCallback(get_mouse_pos().x, get_mouse_pos().y, button, action);
+	//Panel::mouse_callback_func(button, action, mousex, mousey);
+
+	if (action == GLFW_PRESS)
+		lastButtonPressed = button;
+	else if (action == GLFW_RELEASE)
+		lastButtonReleased = button;
 }
 
 INTERNAL
 void resizeCallback(GLFWwindow* win, int width, int height) {
-	if (bmt_win.BMTResizeCallback != NULL)
-		bmt_win.BMTResizeCallback(width, height);
+	if (BMTResizeCallback != NULL)
+		BMTResizeCallback(width, height);
 	set_window_size(width, height);
 }
 
-void init_window(int width, int height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
-	bmt_win.width = width;
-	bmt_win.height = height;
+void init_window(int window_width, int window_height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
+	width = window_width;
+	height = window_height;
 
-	bmt_win.virtual_width = width;
-	bmt_win.virtual_height = height;
+	virtual_width = window_width;
+	virtual_height = window_height;
+
+	lastKeyPressed = lastButtonPressed = 0;
 
 	//INIT GLFW
 	if (!glfwInit()) {
@@ -118,9 +137,9 @@ void init_window(int width, int height, const char* title, bool fullscreen, bool
 	}
 
 	for (int i = 0; i < MAX_KEYS; ++i)
-		bmt_win.keys[i] = -1;
+		keys[i] = -1;
 	for (int i = 0; i < MAX_BUTTONS; ++i)
-		bmt_win.buttons[i] = -1;
+		buttons[i] = -1;
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -134,45 +153,45 @@ void init_window(int width, int height, const char* title, bool fullscreen, bool
 	if (fullscreen) {
 		glfwWindowHint(GLFW_VISIBLE, false);
 		glfwWindowHint(GLFW_DECORATED, false);
-		bmt_win.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
-		if (!bmt_win.glfw_window) {
+		glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
+		if (!glfw_window) {
 			BMT_LOG(MINOR_ERROR, "Windowed Window failed to be created");
 			glfwTerminate();
 		}
-		bmt_win.x = bmt_win.y = 0;
+		x = y = 0;
 
 		set_window_size(
 			glfwGetVideoMode(glfwGetPrimaryMonitor())->width,
 			glfwGetVideoMode(glfwGetPrimaryMonitor())->height
 		);
 
-		glfwSetWindowPos(bmt_win.glfw_window, 0, 0);
-		if(!primary_monitor) 
-			glfwSetWindowPos(bmt_win.glfw_window, glfwGetVideoMode(glfwGetPrimaryMonitor())->width, 0);
+		glfwSetWindowPos(glfw_window, 0, 0);
+		if (!primary_monitor)
+			glfwSetWindowPos(glfw_window, glfwGetVideoMode(glfwGetPrimaryMonitor())->width, 0);
 	}
 	else {
 		glfwWindowHint(GLFW_VISIBLE, false);
-		bmt_win.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
-		if (!bmt_win.glfw_window) {
+		glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
+		if (!glfw_window) {
 			BMT_LOG(MINOR_ERROR, "Windowed Window failed to be created");
 			glfwTerminate();
 		}
-		bmt_win.x = bmt_win.y = 0;
+		x = y = 0;
 
 		float scrWidth = (float)glfwGetVideoMode(glfwGetPrimaryMonitor())->width;
 		float scrHeight = (float)glfwGetVideoMode(glfwGetPrimaryMonitor())->height;
 
-		glfwSetWindowPos(bmt_win.glfw_window, (int)((scrWidth / 2) - (width / 2)), (int)((scrHeight / 2) - (height / 2)));
+		glfwSetWindowPos(glfw_window, (int)((scrWidth / 2) - (width / 2)), (int)((scrHeight / 2) - (height / 2)));
 		if (!primary_monitor)
-			glfwSetWindowPos(bmt_win.glfw_window, (int)(glfwGetVideoMode(glfwGetPrimaryMonitor())->width + (scrWidth / 2) - (width / 2)),
+			glfwSetWindowPos(glfw_window, (int)(glfwGetVideoMode(glfwGetPrimaryMonitor())->width + (scrWidth / 2) - (width / 2)),
 			(int)((scrHeight / 2) - (height / 2))
-		);
+			);
 	}
 
 	//INIT GLEW
-	glfwMakeContextCurrent(bmt_win.glfw_window);
+	glfwMakeContextCurrent(glfw_window);
 	glfwSwapInterval(0);
-	glfwShowWindow(bmt_win.glfw_window);
+	glfwShowWindow(glfw_window);
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
@@ -189,10 +208,11 @@ void init_window(int width, int height, const char* title, bool fullscreen, bool
 	BMT_LOG(INFO, "OpenGL Vendor: %s", glGetString(GL_VENDOR));
 	BMT_LOG(INFO, "Graphics Card: %s", glGetString(GL_RENDERER));
 
-	glfwSetKeyCallback(bmt_win.glfw_window, keycallback);
-	glfwSetWindowSizeCallback(bmt_win.glfw_window, resizeCallback);
-	glfwSetMouseButtonCallback(bmt_win.glfw_window, mouseButtonCallback);
-	glfwSetCursorPosCallback(bmt_win.glfw_window, cursorPosCallback);
+	glfwSetKeyCallback(glfw_window, keycallback);
+	glfwSetWindowSizeCallback(glfw_window, resizeCallback);
+	glfwSetMouseButtonCallback(glfw_window, mouseButtonCallback);
+	glfwSetCursorPosCallback(glfw_window, cursorPosCallback);
+	glfwSetCharCallback(glfw_window, char_callback);
 
 	//END INIT GLEW
 
@@ -200,19 +220,19 @@ void init_window(int width, int height, const char* title, bool fullscreen, bool
 	init3D();
 }
 
-void set_window_pos(int x, int y) {
-	bmt_win.x = x;
-	bmt_win.y = y;
-	glfwSetWindowPos(bmt_win.glfw_window, x, y);
+void set_window_pos(int window_x, int window_y) {
+	x = window_x;
+	y = window_y;
+	glfwSetWindowPos(glfw_window, x, y);
 }
 
-void set_window_size(int width, int height) {
-	if (width < 1) width = 1;
-	if (height < 1) height = 1;
-	bmt_win.width = width;
-	bmt_win.height = height;
-	glfwSetWindowSize(bmt_win.glfw_window, width, height);
-	set_2D_render_viewport(0, 0, width, height, bmt_win.virtual_width, bmt_win.virtual_height);
+void set_window_size(int window_width, int window_height) {
+	if (window_width < 1) window_width = 1;
+	if (window_height < 1) window_height = 1;
+	width = window_width;
+	height = window_height;
+	glfwSetWindowSize(glfw_window, width, height);
+	set_2D_render_viewport(0, 0, width, height, virtual_width, virtual_height);
 	set_3D_render_viewport(width, height);
 }
 
@@ -225,57 +245,61 @@ void set_clear_color(vec4 color) {
 }
 
 void begin_drawing() {
-	bmt_win.currentTime = glfwGetTime();
-	bmt_win.updateTime = bmt_win.currentTime - bmt_win.previousTime;
-	bmt_win.previousTime = bmt_win.currentTime;
+	currentTime = glfwGetTime();
+	updateTime = currentTime - previousTime;
+	previousTime = currentTime;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void end_drawing() {
 	for (int i = 0; i < MAX_KEYS; ++i) {
-		bmt_win.keys[i] = -1;
+		keys[i] = -1;
 	}
 	for (int i = 0; i < MAX_BUTTONS; ++i) {
-		bmt_win.buttons[i] = -1;
+		buttons[i] = -1;
 	}
+	lastKeyPressed = 0;
+	lastButtonPressed = 0;
+	lastKeyReleased = 0;
+	lastButtonReleased = 0;
 
-	glfwSwapBuffers(bmt_win.glfw_window);
+	glfwSwapBuffers(glfw_window);
 	glfwPollEvents();
 
-	bmt_win.currentTime = glfwGetTime();
-	bmt_win.drawTime = bmt_win.currentTime - bmt_win.previousTime;
-	bmt_win.previousTime = bmt_win.currentTime;
+	currentTime = glfwGetTime();
+	drawTime = currentTime - previousTime;
+	previousTime = currentTime;
 
-	bmt_win.frameTime = bmt_win.updateTime + bmt_win.drawTime;
+	frameTime = updateTime + drawTime;
 
 	// Wait for some milliseconds...
-	if (bmt_win.frameTime < bmt_win.targetTime)
+	if (frameTime < targetTime)
 	{
 		double prevTime = glfwGetTime();
 		double nextTime = 0.0;
 
 #if defined(_BUSY_WAIT)
 		// Busy wait loop
-		while ((bmt_win.nextTime - bmt_win.prevTime) < ((bmt_win.targetTime - bmt_win.frameTime)*1000.0f) / 1000.0f) bmt_win.nextTime = glfwGetTime();
+		while ((nextTime - prevTime) < ((targetTime - frameTime)*1000.0f) / 1000.0f) nextTime = glfwGetTime();
 #elif defined(_WIN32) || defined(_WIN64)
-		Sleep((DWORD)((bmt_win.targetTime - bmt_win.frameTime)*1000.0f));
+		Sleep((DWORD)((targetTime - frameTime)*1000.0f));
 #elif defined(__LINUX__)
-		usleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
+		usleep((targetTime - frameTime)*1000.0f);
 #elif defined(__APPLE__)
-		usleep((bmt_win.targetTime - bmt_win.frameTime)*1000.0f);
+		usleep((targetTime - frameTime)*1000.0f);
 #endif
 
-		bmt_win.currentTime = glfwGetTime();
-		double extraTime = bmt_win.currentTime - bmt_win.previousTime;
-		bmt_win.previousTime = bmt_win.currentTime;
+		currentTime = glfwGetTime();
+		double extraTime = currentTime - previousTime;
+		previousTime = currentTime;
 
-		bmt_win.frameTime += extraTime;
+		frameTime += extraTime;
 	}
 	static int framecount = 0;
 	framecount++;
 	if (framecount > 150) {
-		std::cout << "FPS:" << (int)(1.0f / (float)bmt_win.frameTime) << std::endl;
+		std::cout << "FPS:" << (int)(1.0f / (float)frameTime) << std::endl;
 		framecount = 0;
 	}
 }
@@ -285,76 +309,92 @@ double get_elapsed_time() {
 }
 
 void set_FPS_cap(double FPS) {
-	if (FPS < 1) bmt_win.targetTime = 0.0;
-	else bmt_win.targetTime = 1.0 / FPS;
+	if (FPS < 1) targetTime = 0.0;
+	else targetTime = 1.0 / FPS;
 }
 
 bool is_window_closed() {
-	return glfwWindowShouldClose(bmt_win.glfw_window) == 1;
+	return glfwWindowShouldClose(glfw_window) == 1;
 }
 
 void set_key_callback(void(*keyCallback)(int key, int action)) {
-	bmt_win.BMTKeyCallback = keyCallback;
+	BMTKeyCallback = keyCallback;
 }
 
 void set_mouse_callback(void(*mouseCallback)(double mousex, double mousey, int button, int action)) {
-	bmt_win.BMTMouseCallback = mouseCallback;
+	BMTMouseCallback = mouseCallback;
 }
 
 void set_window_resize_callback(void(*resizecallback)(int width, int height)) {
-	bmt_win.BMTResizeCallback = resizecallback;
+	BMTResizeCallback = resizecallback;
+}
+
+int get_key_pressed() {
+	return lastKeyPressed;
+}
+
+int get_button_pressed() {
+	return lastButtonPressed;
+}
+
+int get_key_released() {
+	return lastKeyReleased;
+}
+
+int get_button_released() {
+	return lastButtonReleased;
 }
 
 bool is_key_pressed(unsigned int keycode) {
-	if (bmt_win.keys[keycode] == GLFW_PRESS)
+	if (keys[keycode] == GLFW_PRESS)
 		return true;
 	return false;
 }
 
 bool is_key_released(unsigned int keycode) {
-	if (bmt_win.keys[keycode] == GLFW_RELEASE) {
+	if (keys[keycode] == GLFW_RELEASE) {
 		return true;
 	}
 	return false;
 }
 
 bool is_button_pressed(unsigned int button) {
-	if (bmt_win.buttons[button] == GLFW_PRESS) {
+	if (buttons[button] == GLFW_PRESS) {
 		return true;
 	}
 	return false;
 }
 
 bool is_button_released(unsigned int button) {
-	if (bmt_win.buttons[button] == GLFW_RELEASE) {
+	if (buttons[button] == GLFW_RELEASE) {
 		return true;
 	}
 	return false;
 }
 
 bool is_key_down(unsigned int keycode) {
-	if (glfwGetKey(bmt_win.glfw_window, keycode) == 1) {
+	if (glfwGetKey(glfw_window, keycode) == 1) {
 		return true;
 	}
 	return false;
 }
 
 bool is_button_down(unsigned int button) {
-	if (glfwGetMouseButton(bmt_win.glfw_window, button) == 1) {
+	if (glfwGetMouseButton(glfw_window, button) == 1) {
 		return true;
 	}
 	return false;
 }
 
 bool is_key_up(unsigned int keycode) {
-	if (glfwGetKey(bmt_win.glfw_window, keycode) == 0) {
+	if (glfwGetKey(glfw_window, keycode) == 0) {
 		return true;
 	}
 	return false;
 }
 
 bool is_button_up(unsigned int button) {
-	if (glfwGetMouseButton(bmt_win.glfw_window, button) == 0) {
+	if (glfwGetMouseButton(glfw_window, button) == 0) {
 		return true;
 	}
 	return false;
@@ -367,65 +407,65 @@ void set_vsync(bool vsync) {
 		glfwSwapInterval(0);
 }
 
-void get_mouse_pos(double* mousex, double* mousey) {
-	*mousex = bmt_win.mousex;
-	*mousey = bmt_win.mousey;
-	*mousex *= (float)bmt_win.virtual_width / (float)bmt_win.width;
-	*mousey *= (float)bmt_win.virtual_height / (float)bmt_win.height;
+void get_mouse_pos(double* mousexPtr, double* mouseyPtr) {
+	*mousexPtr = mousex;
+	*mouseyPtr = mousey;
+	*mousexPtr *= (float)virtual_width / (float)width;
+	*mouseyPtr *= (float)virtual_height / (float)height;
 }
 
 vec2 get_mouse_pos() {
-	vec2 mouse_pos = V2((float)bmt_win.mousex, (float)bmt_win.mousey);
-	vec2 scale = V2((float)(bmt_win.virtual_width) / (float)(bmt_win.width), (float)(bmt_win.virtual_height) / (float)(bmt_win.height));
+	vec2 mouse_pos = V2((float)mousex, (float)mousey);
+	vec2 scale = V2((float)(virtual_width) / (float)(width), (float)(virtual_height) / (float)(height));
 	mouse_pos = mouse_pos * scale;
 	return mouse_pos;
 }
 
 void dispose_window() {
-	glfwSetWindowShouldClose(bmt_win.glfw_window, true);
-	glfwDestroyWindow(bmt_win.glfw_window);
+	glfwSetWindowShouldClose(glfw_window, true);
+	glfwDestroyWindow(glfw_window);
 	glfwDefaultWindowHints();
 	glfwTerminate();
 	dispose2D();
 }
 
-void set_mouse_locked(bool locked) {
-	bmt_win.locked = locked;
+void set_mouse_locked(bool mouse_locked) {
+	locked = mouse_locked;
 }
 
 void set_virtual_size(int v_width, int v_height) {
-	bmt_win.virtual_width = v_width;
-	bmt_win.virtual_height = v_height;
+	virtual_width = v_width;
+	virtual_height = v_height;
 }
 
 int get_virtual_width() {
-	return bmt_win.virtual_width;
+	return virtual_width;
 }
 
 int get_virtual_height() {
-	return bmt_win.virtual_height;
+	return virtual_height;
 }
 
 vec2 get_virtual_size() {
-	return V2((float)bmt_win.virtual_width, (float)bmt_win.virtual_height);
+	return V2((float)virtual_width, (float)virtual_height);
 }
 
 int get_window_width() {
-	int width;
-	glfwGetWindowSize(bmt_win.glfw_window, &width, 0);
-	return width;
+	int win_width;
+	glfwGetWindowSize(glfw_window, &win_width, 0);
+	return win_width;
 }
 
 int get_window_height() {
-	int height;
-	glfwGetWindowSize(bmt_win.glfw_window, 0, &height);
-	return height;
+	int win_height;
+	glfwGetWindowSize(glfw_window, 0, &win_height);
+	return win_height;
 }
 
-void set_mouse_hidden(bool hidden) {
-	bmt_win.hidden = hidden;
+void set_mouse_hidden(bool mouse_hidden) {
+	hidden = mouse_hidden;
 	if (hidden)
-		glfwSetInputMode(bmt_win.glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	else
-		glfwSetInputMode(bmt_win.glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
