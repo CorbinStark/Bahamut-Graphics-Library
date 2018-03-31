@@ -421,6 +421,10 @@ vec2 get_mouse_pos() {
 	return mouse_pos;
 }
 
+void set_window_should_close(bool shouldClose) {
+	glfwSetWindowShouldClose(glfw_window, shouldClose);
+}
+
 void dispose_window() {
 	glfwSetWindowShouldClose(glfw_window, true);
 	glfwDestroyWindow(glfw_window);

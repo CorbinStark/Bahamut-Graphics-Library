@@ -54,14 +54,15 @@ Texture create_texture_from_string(Font& font, const std::string str, GLubyte r,
 Font load_font(const GLchar* filepath, unsigned int size);
 void dispose_font(Font& font);
 
+float get_font_height(Font& font);
+
 inline const u32 get_string_width(Font& font, const char* str) {
 	u32 len = strlen(str);
 	u32 width = 0;
 	for (u32 i = 0; i < len; ++i) {
 		if (str[i] == '\n') return width;
-		width += font.characters[str[i]]->texture.width;
+		width += (font.characters[str[i]]->advance >> 6);
 	}
-	width += font.characters['c']->texture.width;
 	return width;
 }
 

@@ -78,6 +78,7 @@ double get_elapsed_time();
 
 void get_mouse_pos(double* mousex, double* mousey);
 vec2 get_mouse_pos();
+void set_window_should_close(bool shouldClose);
 void dispose_window();
 
 void set_FPS_cap(double FPS);

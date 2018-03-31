@@ -40,7 +40,6 @@ Character* get_char(Font& font, const GLchar c) {
 	}
 }
 
-INTERNAL
 float get_font_height(Font& font) {
 	return get_char(font, 'T')->bearing.y + (get_char(font, 'T')->size.y / 2);
 }

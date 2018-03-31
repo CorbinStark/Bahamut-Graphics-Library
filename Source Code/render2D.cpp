@@ -319,6 +319,71 @@ void draw_texture(Texture tex, i32 xPos, i32 yPos) {
 	indexcount += 6;
 }
 
+void draw_texture(Texture tex, i32 xPos, i32 yPos, i32 width, i32 height) {
+	if (tex.ID == 0)
+		return;
+	int texSlot = submit_tex(tex);
+	GLfloat* uvs;
+
+	uvs = DEFAULT_UVS;
+	if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
+		uvs = FLIP_BOTH_UVS;
+	if (tex.flip_flag & FLIP_HORIZONTAL)
+		uvs = FLIP_HORIZONTAL_UVS;
+	if (tex.flip_flag & FLIP_VERTICAL)
+		uvs = FLIP_VERTICAL_UVS;
+
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[0];
+	buffer->uv.y = uvs[1];
+	buffer->texid = texSlot;
+	buffer++;
+
+	buffer->pos.x = xPos;
+	buffer->pos.y = yPos + height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[2];
+	buffer->uv.y = uvs[3];
+	buffer->texid = texSlot;
+	buffer++;
+
+	buffer->pos.x = xPos + width;
+	buffer->pos.y = yPos + height;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[4];
+	buffer->uv.y = uvs[5];
+	buffer->texid = texSlot;
+	buffer++;
+
+	buffer->pos.x = xPos + width;
+	buffer->pos.y = yPos;
+	buffer->color.x = 1;
+	buffer->color.y = 1;
+	buffer->color.z = 1;
+	buffer->color.w = 1;
+	buffer->uv.x = uvs[6];
+	buffer->uv.y = uvs[7];
+	buffer->texid = texSlot;
+	buffer++;
+
+	indexcount += 6;
+}
+
+void draw_texture(Texture tex, i32 xPos, i32 yPos, vec4 color) {
+	draw_texture(tex, xPos, yPos, color.x, color.y, color.z, color.w);
+}
+
 void draw_texture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a) {
 	if (tex.ID == 0)
 		return;
@@ -479,29 +544,68 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	indexcount += 6;
 }
 
-void draw_texture_EX(Texture tex, Rect source, Rect dest) {
+void draw_texture_EX(Texture tex, Rect source, Rect dest, f32 r, f32 g, f32 b, f32 a) {
 	if (tex.ID == 0)
 		return;
 
+	r /= 255.0f;
+	g /= 255.0f;
+	b /= 255.0f;
+	a /= 255.0f;
+
 	static GLfloat EX_UVS[8];
-	EX_UVS[0] = source.x / tex.width;
-	EX_UVS[1] = source.y / tex.height;
-	EX_UVS[2] = source.x / tex.width;
-	EX_UVS[3] = (source.y + source.height) / tex.height;
-	EX_UVS[4] = (source.x + source.width) / tex.width;
-	EX_UVS[5] = (source.y + source.height) / tex.height;
-	EX_UVS[6] = (source.x + source.width) / tex.width;
-	EX_UVS[7] = source.y / tex.height;
+
+	if (tex.flip_flag == 0) {
+		EX_UVS[0] = source.x / tex.width;
+		EX_UVS[1] = source.y / tex.height;
+		EX_UVS[2] = source.x / tex.width;
+		EX_UVS[3] = (source.y + source.height) / tex.height;
+		EX_UVS[4] = (source.x + source.width) / tex.width;
+		EX_UVS[5] = (source.y + source.height) / tex.height;
+		EX_UVS[6] = (source.x + source.width) / tex.width;
+		EX_UVS[7] = source.y / tex.height;
+	} 
+	else if (tex.flip_flag & FLIP_HORIZONTAL) {
+		EX_UVS[0] = (source.x + source.width) / tex.width;
+		EX_UVS[1] = source.y / tex.height;
+		EX_UVS[2] = (source.x + source.width) / tex.width;
+		EX_UVS[3] = (source.y + source.height) / tex.height;
+		EX_UVS[4] = source.x / tex.width;
+		EX_UVS[5] = (source.y + source.height) / tex.height;
+		EX_UVS[6] = source.x / tex.width;
+		EX_UVS[7] = source.y / tex.height;
+	}
+	else if (tex.flip_flag & FLIP_VERTICAL) {
+		EX_UVS[0] = source.x / tex.width;
+		EX_UVS[1] = (source.y + source.height) / tex.height;
+		EX_UVS[2] = source.x / tex.width;
+		EX_UVS[3] = source.y / tex.height;
+		EX_UVS[4] = (source.x + source.width) / tex.width;
+		EX_UVS[5] = source.y / tex.height;
+		EX_UVS[6] = (source.x + source.width) / tex.width;
+		EX_UVS[7] = (source.y + source.height) / tex.height;
+	}
+	else if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL) {
+		EX_UVS[0] = (source.x + source.width) / tex.width;
+		EX_UVS[1] = (source.y + source.height) / tex.height;
+		EX_UVS[2] = (source.x + source.width) / tex.width;
+		EX_UVS[3] = source.y / tex.height;
+		EX_UVS[4] = source.x / tex.width;
+		EX_UVS[5] = source.y / tex.height;
+		EX_UVS[6] = source.x / tex.width;
+		EX_UVS[7] = (source.y + source.height) / tex.height;
+	}
+
 	GLfloat* uvs = EX_UVS;
 
 	int texSlot = submit_tex(tex);
 
 	buffer->pos.x = dest.x;
 	buffer->pos.y = dest.y;
-	buffer->color.x = 1;
-	buffer->color.y = 1;
-	buffer->color.z = 1;
-	buffer->color.w = 1;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
 	buffer->uv.x = uvs[0];
 	buffer->uv.y = uvs[1];
 	buffer->texid = texSlot;
@@ -509,10 +613,10 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest) {
 
 	buffer->pos.x = dest.x;
 	buffer->pos.y = dest.y + dest.height;
-	buffer->color.x = 1;
-	buffer->color.y = 1;
-	buffer->color.z = 1;
-	buffer->color.w = 1;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
 	buffer->uv.x = uvs[2];
 	buffer->uv.y = uvs[3];
 	buffer->texid = texSlot;
@@ -520,10 +624,10 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest) {
 
 	buffer->pos.x = dest.x + dest.width;
 	buffer->pos.y = dest.y + dest.height;
-	buffer->color.x = 1;
-	buffer->color.y = 1;
-	buffer->color.z = 1;
-	buffer->color.w = 1;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
 	buffer->uv.x = uvs[4];
 	buffer->uv.y = uvs[5];
 	buffer->texid = texSlot;
@@ -531,16 +635,24 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest) {
 
 	buffer->pos.x = dest.x + dest.width;
 	buffer->pos.y = dest.y;
-	buffer->color.x = 1; 
-	buffer->color.y = 1;
-	buffer->color.z = 1;
-	buffer->color.w = 1;
+	buffer->color.x = r;
+	buffer->color.y = g;
+	buffer->color.z = b;
+	buffer->color.w = a;
 	buffer->uv.x = uvs[6];
 	buffer->uv.y = uvs[7];
 	buffer->texid = texSlot;
 	buffer++;
 
 	indexcount += 6;
+}
+
+void draw_texture_EX(Texture tex, Rect source, Rect dest, vec4 color) {
+	draw_texture_EX(tex, source, dest, color.x, color.y, color.z, color.w);
+}
+
+void draw_texture_EX(Texture tex, Rect source, Rect dest) {
+	draw_texture_EX(tex, source, dest, 255.0f, 255.0f, 255.0f, 255.0f);
 }
 
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a) {
