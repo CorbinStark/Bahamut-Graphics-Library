@@ -212,8 +212,8 @@ void end3D() {
 }
 
 void set_3D_render_viewport(u32 width, u32 height) {
-	glViewport(0, 0, get_window_width(), get_window_height());
-	aspectRatio = get_window_width() / get_window_height();
+	glViewport(0, 0, width, height);
+	aspectRatio = width / height;
 	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
 
 }

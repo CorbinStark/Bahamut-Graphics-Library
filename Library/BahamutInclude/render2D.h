@@ -114,8 +114,8 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest, vec2 origin);
 void draw_render_texture(RenderTexture tex, i32 xPos, i32 yPos);
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a);
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, vec4 color);
-void draw_text(Font& font, std::string str, i32 x, i32 y);
-void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b);
+void draw_text(Font& font, const char* str, i32 xPos, i32 yPos, f32 r = 255.0f, f32 g = 255.0f, f32 b = 255.0f);
+void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r = 255.0f, f32 g = 255.0f, f32 b = 255.0f);
 //===============================================================================
 //Description: Ends and flushes the renderer. You must do all draw calls in between
 //	begin2D and end2D.

@@ -110,12 +110,41 @@ inline vec3 V3(f32 x, f32 y, f32 z) {
 }
 
 INTERNAL
+inline vec3 V3(vec2 v2, f32 z) {
+	vec3 vec;
+	vec.x = v2.x;
+	vec.y = v2.y;
+	vec.z = z;
+	return vec;
+}
+
+INTERNAL
 inline vec4 V4(f32 x, f32 y, f32 z, f32 w) {
 	vec4 vec;
 	vec.x = x;
 	vec.y = y;
 	vec.z = z;
 	vec.w = w;
+	return vec;
+}
+
+INTERNAL
+inline vec4 V4(vec3 v3, f32 w) {
+	vec4 vec;
+	vec.x = v3.x;
+	vec.y = v3.y;
+	vec.z = v3.z;
+	vec.w = w;
+	return vec;
+}
+
+INTERNAL
+inline vec4 V4(vec2 v21, vec2 v22) {
+	vec4 vec;
+	vec.x = v21.x;
+	vec.y = v21.y;
+	vec.z = v22.x;
+	vec.w = v22.y;
 	return vec;
 }
 

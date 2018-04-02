@@ -96,26 +96,100 @@ void draw_texture(Texture tex, i32 xPos, i32 yPos);
 //Parameters: 
 //		-A texture to render
 //		-An x and y position to render to
+//		-A width and height to stretch the texture to (this is offered just in case you don't feel
+//			like changing the texture's width and height, then changing it back.)
+//
+//Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
+//		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//==========================================================================================
+void draw_texture(Texture tex, i32 xPos, i32 yPos, i32 width, i32 height);
+//==========================================================================================
+//Description: Draws a texture onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-A texture to render
+//		-An x and y position to render to
 //		-a color (RGBA) to multiply the texture with. If the texture is white all white 
 //			parts will be turned to that color. nonwhite parts will combine with that color
 //
 //Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
 //		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
 //==========================================================================================
-void draw_texture(Texture tex, i32 xPos, i32 yPos, i32 width, i32 height);
 void draw_texture(Texture tex, i32 xPos, i32 yPos, f32 r, f32 g, f32 b, f32 a);
 void draw_texture(Texture tex, i32 xPos, i32 yPos, vec4 color);
+//==========================================================================================
+//Description: Draws a rotated texture onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-A texture to render
+//		-An x and y position to render to
+//		-a degree to rotate by
+//
+//Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
+//		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//==========================================================================================
 void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, f32 rotateDegree);
+//==========================================================================================
+//Description: Draws a rotated texture onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-A texture to render
+//		-An x and y position to render to
+//		-an origin to rotate about
+//		-a degree to rotate by
+//
+//Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
+//		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//==========================================================================================
 void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rotation);
+//==========================================================================================
+//Description: Draws a portion of a texture onto the portion of the bound framebuffer 
+//			   (by default the window)
+//
+//Parameters: 
+//		-A texture to render
+//		-A square area to render from the texture
+//		-A square area to render onto the bound framebuffer
+//		-OPTIONAL - A color(RGBA) to multiply with
+//
+//Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
+//		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//==========================================================================================
 void draw_texture_EX(Texture tex, Rect source, Rect dest);
 void draw_texture_EX(Texture tex, Rect source, Rect dest, f32 r, f32 g, f32 b, f32 a);
 void draw_texture_EX(Texture tex, Rect source, Rect dest, vec4 color);
 void draw_texture_EX(Texture tex, Rect source, Rect dest, vec2 origin);
+//==========================================================================================
+//Description: Draws a render texture onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-A render texture to render
+//		-An x and y position
+//
+//Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
+//		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//==========================================================================================
 void draw_render_texture(RenderTexture tex, i32 xPos, i32 yPos);
+//==========================================================================================
+//Description: Draws a rectangle onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-An x, y, width, and height
+//		-A color(RGBA)
+//==========================================================================================
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a);
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, vec4 color);
-void draw_text(Font& font, std::string str, i32 x, i32 y);
-void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b);
+//==========================================================================================
+//Description: Draws a string onto the bound framebuffer (by default the window)
+//
+//Parameters: 
+//		-A font to take character textures from
+//		-A string to draw
+//		-An x and y position to draw at
+//		-A color(RGBA)
+//==========================================================================================
+void draw_text(Font& font, const char* str, i32 xPos, i32 yPos, f32 r = 255.0f, f32 g = 255.0f, f32 b = 255.0f);
+void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r = 255.0f, f32 g = 255.0f, f32 b = 255.0f);
 //===============================================================================
 //Description: Ends and flushes the renderer. You must do all draw calls in between
 //	begin2D and end2D.

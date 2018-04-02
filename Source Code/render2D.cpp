@@ -146,7 +146,7 @@ INTERNAL
 int submit_tex(Texture tex) {
 	int texSlot = 0;
 	bool found = false;
-	for (int i = 0; i < texcount; ++i) {
+	for (u32 i = 0; i < texcount; ++i) {
 		if (textures[i] == tex.ID) {
 			texSlot = (i + 1);
 			found = true;
@@ -183,7 +183,7 @@ void init2D(i32 x, i32 y, u32 width, u32 height) {
 	glLinkProgram(shader.ID);
 	glValidateProgram(shader.ID);
 	glUseProgram(0);
-	for (int i = 0; i < BATCH_MAX_TEXTURES; ++i)
+	for (u16 i = 0; i < BATCH_MAX_TEXTURES; ++i)
 		textures[i] = 0;
 
 	locations[0] = "tex1";
@@ -220,7 +220,7 @@ void init2D(i32 x, i32 y, u32 width, u32 height) {
 	GLushort indices[BATCH_INDICE_SIZE];
 
 	int offset = 0;
-	for (int i = 0; i < BATCH_INDICE_SIZE; i += 6) {
+	for (u32 i = 0; i < BATCH_INDICE_SIZE; i += 6) {
 		indices[i] = offset + 0;
 		indices[i + 1] = offset + 1;
 		indices[i + 2] = offset + 2;
@@ -761,8 +761,13 @@ void draw_rectangle(i32 x, i32 y, i32 width, i32 height, vec4 color) {
 	indexcount += 6;
 }
 
-void draw_text(Font& font, std::string str, i32 xPos, i32 yPos) {
-	for (int i = 0; i < str.size(); ++i) {
+void draw_text(Font& font, const char* str, i32 xPos, i32 yPos, f32 r, f32 g, f32 b) {
+	r /= 255;
+	g /= 255;
+	b /= 255;
+
+	u32 len = strlen(str);
+	for (u32 i = 0; i < len; ++i) {
 		Character* c = font.characters[str[i]];
 		int yOffset = (font.characters['T']->bearing.y - c->bearing.y) + 1;
 		if (yOffset < 0) yOffset = 0;
@@ -770,7 +775,56 @@ void draw_text(Font& font, std::string str, i32 xPos, i32 yPos) {
 		int x = xPos + c->bearing.x;
 		int y = yPos + yOffset;
 
-		draw_texture(font.characters[str[i]]->texture, x, y);
+		Texture tex = font.characters[str[i]]->texture;
+		int texSlot = submit_tex(tex);
+		GLfloat* uvs;
+		uvs = DEFAULT_UVS;
+
+		buffer->pos.x = x;
+		buffer->pos.y = y;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[0];
+		buffer->uv.y = uvs[1];
+		buffer->texid = texSlot;
+		buffer++;
+
+		buffer->pos.x = x;
+		buffer->pos.y = y + tex.height;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[2];
+		buffer->uv.y = uvs[3];
+		buffer->texid = texSlot;
+		buffer++;
+
+		buffer->pos.x = x + tex.width;
+		buffer->pos.y = y + tex.height;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[4];
+		buffer->uv.y = uvs[5];
+		buffer->texid = texSlot;
+		buffer++;
+
+		buffer->pos.x = x + tex.width;
+		buffer->pos.y = y;
+		buffer->color.x = r;
+		buffer->color.y = g;
+		buffer->color.z = b;
+		buffer->color.w = 1;
+		buffer->uv.x = uvs[6];
+		buffer->uv.y = uvs[7];
+		buffer->texid = texSlot;
+		buffer++;
+
+		indexcount += 6;
 		xPos += (font.characters[str[i]]->advance >> 6);
 	}
 }
@@ -780,7 +834,7 @@ void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f3
 	g /= 255;
 	b /= 255;
 
-	for (int i = 0; i < str.size(); ++i) {
+	for (u16 i = 0; i < str.size(); ++i) {
 		Character* c = font.characters[str[i]];
 		int yOffset = (font.characters['T']->bearing.y - c->bearing.y) + 1;
 		if (yOffset < 0) yOffset = 0;
@@ -853,7 +907,7 @@ void end2D() {
 		load_mat4(&shader, "pr_matrix", orthoProjection);
 	usingCustomProjection = false;
 
-	for (int i = 0; i < texcount; ++i) {
+	for (u16 i = 0; i < texcount; ++i) {
 		//if (textures[i] != 0) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
@@ -875,7 +929,7 @@ void end2D() {
 	glDisableVertexAttribArray(3); //textureID
 	glBindVertexArray(0);
 
-	for (int i = 0; i < texcount; ++i)
+	for (u16 i = 0; i < texcount; ++i)
 		unbind_texture(textures[i]);
 
 	indexcount = 0;
