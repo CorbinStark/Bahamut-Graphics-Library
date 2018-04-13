@@ -41,9 +41,13 @@
 #endif
 
 struct Mesh {
-	u16 vertexCount;
+	u16 vertexcount;
+	u16 indexcount;
 	GLuint vao;
-	GLuint vbo;
+	GLuint posVBO;
+	GLuint uvVBO;
+	GLuint normVBO;
+	GLuint ebo;
 };
 
 struct Material {
@@ -71,21 +75,12 @@ void dispose_model(Model& model);
 
 void init3D();
 
-void begin3D();
-void begin3D(Camera* camera);
-void begin3D(mat4 projection);
-void begin3D(Camera* camera, mat4 projection);
-
+void begin3D(Shader shader, bool blending = false, bool depthTest = true);
 void draw_model(Model& model);
 void draw_cube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth);
 void draw_sphere(f32 x, f32 y, f32 z, f32 radius);
 void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex);
 void draw_polygon();
-
 void end3D();
-
-void set_3D_render_viewport(u32 width, u32 height);
-void set_FOV(f32 fieldOfView);
-f32 get_FOV();
 
 #endif

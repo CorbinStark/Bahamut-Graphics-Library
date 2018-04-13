@@ -70,7 +70,6 @@ INTERNAL
 void rebuildState() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 //TODO: implement the GUI into this engine.
@@ -232,8 +231,6 @@ void set_window_size(int window_width, int window_height) {
 	width = window_width;
 	height = window_height;
 	glfwSetWindowSize(glfw_window, width, height);
-	set_2D_render_viewport(0, 0, width, height, virtual_width, virtual_height);
-	set_3D_render_viewport(width, height);
 }
 
 void set_clear_color(float r, float g, float b, float a) {
@@ -407,18 +404,21 @@ void set_vsync(bool vsync) {
 		glfwSwapInterval(0);
 }
 
+void set_viewport(i32 x, i32 y, i32 width, i32 height) {
+	glViewport(x, y, width, height);
+}
+
+void resize_viewport(i32 width, i32 height) {
+	glViewport(0, 0, width, height);
+}
+
 void get_mouse_pos(double* mousexPtr, double* mouseyPtr) {
 	*mousexPtr = mousex;
 	*mouseyPtr = mousey;
-	*mousexPtr *= (float)virtual_width / (float)width;
-	*mouseyPtr *= (float)virtual_height / (float)height;
 }
 
 vec2 get_mouse_pos() {
-	vec2 mouse_pos = V2((float)mousex, (float)mousey);
-	vec2 scale = V2((float)(virtual_width) / (float)(width), (float)(virtual_height) / (float)(height));
-	mouse_pos = mouse_pos * scale;
-	return mouse_pos;
+	return V2((float)mousex, (float)mousey);
 }
 
 void set_window_should_close(bool shouldClose) {

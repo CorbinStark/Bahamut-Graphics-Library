@@ -37,16 +37,7 @@ INTERNAL u16 texcount;
 INTERNAL GLuint  textures[BATCH_MAX_TEXTURES];
 INTERNAL GLchar* locations[BATCH_MAX_TEXTURES];
 INTERNAL VertexData* buffer;
-
-INTERNAL StretchMode stretchMode;
-INTERNAL AspectMode aspectMode;
-
 INTERNAL Shader shader;
-INTERNAL mat4 orthoProjection;
-INTERNAL mat4 customProjection;
-INTERNAL bool usingCustomProjection;
-
-INTERNAL Rect viewportRect;
 
 const GLchar* ORTHO_SHADER_FRAG_SHADER = R"FOO(
 #version 130
@@ -104,7 +95,7 @@ in vec4 color;
 in vec2 uv;
 in float texid;
 
-uniform mat4 pr_matrix;
+uniform mat4 pr_matrix = mat4(1.0);
 uniform mat4 vw_matrix = mat4(1.0);
 
 out vec4 pass_color;
@@ -156,7 +147,7 @@ int submit_tex(Texture tex) {
 	if (!found) {
 		if (texcount >= BATCH_MAX_TEXTURES) {
 			end2D();
-			begin2D();
+			begin2D(shader);
 		}
 		textures[texcount++] = tex.ID;
 		texSlot = texcount;
@@ -164,27 +155,13 @@ int submit_tex(Texture tex) {
 	return texSlot;
 }
 
-void init2D(i32 x, i32 y, u32 width, u32 height) {
-	stretchMode = STRETCH_NONE;
-	aspectMode = ASPECT_NONE;
-	set_2D_render_viewport(x, y, width, height, get_virtual_width(), get_virtual_height());
-	texcount = indexcount = 0;
+Shader load_default_shader_2D() {
+	return load_shader_2D_from_strings(ORTHO_SHADER_VERT_SHADER, ORTHO_SHADER_FRAG_SHADER);
+}
 
-	shader.vertexshaderID = load_shader_string(ORTHO_SHADER_VERT_SHADER, GL_VERTEX_SHADER);
-	shader.fragshaderID = load_shader_string(ORTHO_SHADER_FRAG_SHADER, GL_FRAGMENT_SHADER);
-	shader.ID = glCreateProgram();
-	glAttachShader(shader.ID, shader.vertexshaderID);
-	glAttachShader(shader.ID, shader.fragshaderID);
-	glBindFragDataLocation(shader.ID, 0, "outColor");
-	glBindAttribLocation(shader.ID,   0, "position");
-	glBindAttribLocation(shader.ID,   1, "color");
-	glBindAttribLocation(shader.ID,   2, "uv");
-	glBindAttribLocation(shader.ID,   3, "texid");
-	glLinkProgram(shader.ID);
-	glValidateProgram(shader.ID);
-	glUseProgram(0);
-	for (u16 i = 0; i < BATCH_MAX_TEXTURES; ++i)
-		textures[i] = 0;
+void init2D(i32 x, i32 y, u32 width, u32 height) {
+	shader = load_default_shader_2D();
+	texcount = indexcount = 0;
 
 	locations[0] = "tex1";
 	locations[1] = "tex2";
@@ -241,21 +218,23 @@ void init2D(i32 x, i32 y, u32 width, u32 height) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void begin2D() {
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
+void begin2D(Shader shader_in, bool blending, bool depthTest) {
+	shader = shader_in;
+	start_shader(shader_in);
+
+	if (blending)
+		glEnable(GL_BLEND);
+	else
+		glDisable(GL_BLEND);
+	if (depthTest)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	buffer = (VertexData*)glMapBufferRange(GL_ARRAY_BUFFER, 0, BATCH_BUFFER_SIZE,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 	);
-}
-
-void begin2D(mat4 projection) {
-	customProjection = projection;
-	usingCustomProjection = true;
-	begin2D();
 }
 
 void draw_texture(Texture tex, i32 xPos, i32 yPos) {
@@ -655,6 +634,10 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest) {
 	draw_texture_EX(tex, source, dest, 255.0f, 255.0f, 255.0f, 255.0f);
 }
 
+void draw_framebuffer(Framebuffer buffer, i32 xPos, i32 yPos) {
+	draw_texture(buffer.texture, xPos, yPos);
+}
+
 void draw_rectangle(i32 x, i32 y, i32 width, i32 height, f32 r, f32 g, f32 b, f32 a) {
 	r /= 255.0f;
 	g /= 255.0f;
@@ -900,19 +883,10 @@ void end2D() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	start_shader(&shader);
-	if (usingCustomProjection)
-		load_mat4(&shader, "pr_matrix", customProjection);
-	else
-		load_mat4(&shader, "pr_matrix", orthoProjection);
-	usingCustomProjection = false;
-
 	for (u16 i = 0; i < texcount; ++i) {
-		//if (textures[i] != 0) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		load_int(&shader, locations[i], i);
-		//}
+		upload_int(shader, locations[i], i);
 	}
 
 	glBindVertexArray(vao);
@@ -938,21 +912,10 @@ void end2D() {
 	stop_shader();
 }
 
-void set_stretch_mode(StretchMode mode) {
-	stretchMode = mode;
-}
-
-void set_aspect_mode(AspectMode mode) {
-	aspectMode = mode;
-}
-
-Rect get_viewport_rect() {
-	return viewportRect;
-}
-
-INTERNAL 
-void limit_viewport_to_aspect_ratio(f32 aspect, f32 screen_width, f32 screen_height) {
+f32 get_blackbar_width(f32 aspect) {
 	if (aspect == 0) aspect = 1;
+	f32 screen_width = get_window_width();
+	f32 screen_height = get_window_height();
 
 	i32 new_width = screen_width;
 	i32 new_height = (i32)(screen_width / aspect);
@@ -960,67 +923,36 @@ void limit_viewport_to_aspect_ratio(f32 aspect, f32 screen_width, f32 screen_hei
 		new_height = screen_height;
 		new_width = (i32)(screen_height * aspect);
 	}
-	glViewport((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
-	viewportRect = rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	return (screen_width - new_width) / 2;
 }
 
-void set_2D_render_viewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height) {
-	if (virtual_height == 0) virtual_height = 1;
+f32 get_blackbar_height(f32 aspect) {
+	if (aspect == 0) aspect = 1;
+	f32 screen_width = get_window_width();
+	f32 screen_height = get_window_height();
 
-	if (stretchMode == STRETCH_NONE) {
-		orthoProjection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
-		set_virtual_size(width, height);
-		viewportRect = rect(x, y, width, height);
-		if (aspectMode == ASPECT_NONE) {
-			glViewport(x, y, width, height);
-		}
-		if (aspectMode == ASPECT_KEEP) {
-			f32 aspect = (f32)virtual_width / (f32)virtual_height;
-			limit_viewport_to_aspect_ratio(aspect, width, height);
-		}
-		if (aspectMode == ASPECT_KEEP_WIDTH) {
-
-		}
-		if (aspectMode == ASPECT_KEEP_HEIGHT) {
-
-		}
+	i32 new_width = screen_width;
+	i32 new_height = (i32)(screen_width / aspect);
+	if (new_height > screen_height) {
+		new_height = screen_height;
+		new_width = (i32)(screen_height * aspect);
 	}
+	return (screen_height - new_height) / 2;
+}
 
-	//TODO: Fix projection stretch
-	if (stretchMode == STRETCH_PROJECTION) {
-		if (aspectMode == ASPECT_NONE) {
-			orthoProjection = orthographic_projection(x, y, width, height, -10.0f, 10.0f);
-		}
-		if (aspectMode == ASPECT_KEEP) {
-			f32 aspect = (f32)virtual_width / (f32)virtual_height;
+Rect limit_to_aspect_ratio(f32 aspect) {
+	if (aspect == 0) aspect = 1;
+	f32 screen_width = get_window_width();
+	f32 screen_height = get_window_height();
 
-			i32 new_width = width;
-			i32 new_height = (i32)(width / aspect);
-			if (new_height > height) {
-				new_height = height;
-				new_width = (i32)(height * aspect);
-			}
-			orthoProjection = orthographic_projection((width - new_width) / 2, (height - new_height) / 2, new_width, new_height, -10.0f, 10.0f);
-		}
+	i32 new_width = screen_width;
+	i32 new_height = (i32)(screen_width / aspect);
+	if (new_height > screen_height) {
+		new_height = screen_height;
+		new_width = (i32)(screen_height * aspect);
 	}
-
-	if (stretchMode == STRETCH_VIEWPORT) {
-		if (aspectMode == ASPECT_NONE) {
-			glViewport(x, y, width, height);
-		}
-		if (aspectMode == ASPECT_KEEP) {
-			f32 aspect = (f32)virtual_width / (f32)virtual_height;
-			limit_viewport_to_aspect_ratio(aspect, width, height);
-		}
-		if (aspectMode == ASPECT_KEEP_WIDTH) {
-			f32 aspect = (f32)virtual_width / (f32)virtual_height;
-			limit_viewport_to_aspect_ratio(aspect, width, height);
-		}
-		if (aspectMode == ASPECT_KEEP_HEIGHT) {
-			f32 aspect = (f32)virtual_width / (f32)virtual_height;
-			limit_viewport_to_aspect_ratio(aspect, width, height);
-		}
-	}
+	return rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
+	//glViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
 }
 
 void dispose2D() {

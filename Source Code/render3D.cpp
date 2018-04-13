@@ -28,6 +28,7 @@
 
 #include <unordered_map>
 #include <fstream>
+#include <string>
 #include "window.h"
 #include "render3D.h"
 
@@ -40,30 +41,60 @@
 //INTERNAL u16 modelcount;
 
 //TODO: Replace this with my own map implementation
+//this maps a texture ID with a list of models
 INTERNAL std::unordered_map<GLuint, std::vector<Model*>> drawPool;
 
-INTERNAL Shader* defaultShader;
-INTERNAL bool usingCustomProjection;
-INTERNAL mat4 customProjection;
-INTERNAL mat4 perspective;
-INTERNAL Camera* cam;
-INTERNAL f32 FOV;
-INTERNAL f32 aspectRatio;
+INTERNAL Shader shader;
 
-INTERNAL
+INTERNAL inline
 void bind_mesh(Mesh mesh) {
 	glBindVertexArray(mesh.vao);
-	glEnableVertexAttribArray(0);	//vertices location
-	glEnableVertexAttribArray(1);	//texture coords location
-	glEnableVertexAttribArray(2);	//normals location
+	glEnableVertexAttribArray(0); //position
+	glEnableVertexAttribArray(1); //uvs
+	glEnableVertexAttribArray(2); //normals
 }
 
-INTERNAL 
+INTERNAL inline
 void unbind_mesh() {
-	glDisableVertexAttribArray(2);	//normals location
-	glDisableVertexAttribArray(1);	//texture coords location
-	glDisableVertexAttribArray(0);	//vertices location
+	glDisableVertexAttribArray(2);	//normals
+	glDisableVertexAttribArray(1);	//uvs
+	glDisableVertexAttribArray(0);	//position
 	glBindVertexArray(0);
+}
+
+INTERNAL inline
+std::vector<std::string> strsplit(const GLchar *str, GLchar c) {
+	std::vector<std::string> result;
+	do {
+		const GLchar *begin = str;
+		while (*str != c && *str)
+			str++;
+
+		result.push_back(std::string(begin, str));
+	} while (0 != *str++);
+	return result;
+}
+
+INTERNAL inline 
+void process_vertex(std::vector<std::string>& vertexData, std::vector<GLushort>& indices, std::vector<vec2>& textures, std::vector<vec3>& normals, GLfloat textureArray[], GLfloat normalsArray[]) {
+	int currVertIndex = std::stoi(vertexData[0]) - 1;
+	indices.push_back(currVertIndex);
+
+	try {
+		vec2 currentTex = textures.at(std::stoi(vertexData[1]) - 1);
+		textureArray[currVertIndex * 2] = currentTex.x;
+		textureArray[currVertIndex * 2 + 1] = 1 - currentTex.y;
+	}
+	catch (std::exception e) {
+		vec2 currentTex = V2(0, 0);
+		textureArray[currVertIndex * 2] = currentTex.x;
+		textureArray[currVertIndex * 2 + 1] = 1 - currentTex.y;
+	}
+
+	vec3 currentNorm = normals.at(std::stoi(vertexData[2]) - 1);
+	normalsArray[currVertIndex * 3] = currentNorm.x;
+	normalsArray[currVertIndex * 3 + 1] = currentNorm.y;
+	normalsArray[currVertIndex * 3 + 2] = currentNorm.z;
 }
 
 INTERNAL
@@ -71,23 +102,135 @@ Mesh loadOBJ(const char* path) {
 	Mesh mesh = { 0 };
 
 	std::ifstream file(path);
-	if (!file) {
-		BMT_LOG(WARNING, "[%s] Path to .obj could not be opened!");
-	}
 
 	std::vector<vec3> vertices;
-	std::vector<vec2> textures;
+	std::vector<vec2> uvs;
 	std::vector<vec3> normals;
-	std::vector<GLint> indices;
+	std::vector<GLushort> indices;
 
-	GLfloat* vertex_array = NULL;
-	GLfloat* normals_array = NULL;
-	GLfloat* texture_array = NULL;
-	GLint* index_array = NULL;
+	GLfloat* verticesArray = NULL;
+	GLfloat* normalsArray = NULL;
+	GLfloat* textureArray = NULL;
+	GLushort* indicesArray = NULL;
 
-	while (true) {
+	u32 texcount = 0;
+	u32 normalscount = 0;
+	u32 indexcount = 0;
+	u32 vertexcount = 0;
 
+	if (file) {
+		std::string line;
+		while (true) {
+			getline(file, line);
+
+			if (!line.empty()) {
+				std::vector<std::string> tokens;
+				tokens = strsplit(line.c_str(), ' ');
+
+				if (tokens[0] == "o") {
+					BMT_LOG(INFO, "[%s] Loading mesh from .OBJ. (%s)", path, tokens[1].c_str());
+				}
+
+				else if (tokens[0] == "v") {
+					vec3 v = V3(std::stof(tokens[1], 0), std::stof(tokens[2], 0), std::stof(tokens[3], 0));
+					vertices.push_back(v);
+				}
+
+				else if (tokens[0] == "vt") {
+					vec2 uv = V2(std::stof(tokens[1], 0), std::stof(tokens[2], 0));
+					uvs.push_back(uv);
+				}
+
+				else if (tokens[0] == "vn") {
+					vec3 norm = V3(std::stof(tokens[1], 0), std::stof(tokens[2], 0), std::stof(tokens[3], 0));
+					normals.push_back(norm);
+				}
+
+				else if (tokens[0] == "f") {
+					texcount = vertices.size() * 2;
+					normalscount = vertices.size() * 3;
+					textureArray = new GLfloat[texcount]; //need 2 for every vertex
+					normalsArray = new GLfloat[normalscount]; //need 3 for every vertex
+
+					break;
+				}
+			}
+		}
+		while (!line.empty()) {
+			std::vector<std::string> tokens;
+			tokens = strsplit(line.c_str(), ' ');
+			if (tokens[0] != "f") {
+				getline(file, line);
+				continue;
+			}
+
+			std::vector<std::string> vertex1 = strsplit(tokens[1].c_str(), '/');
+			std::vector<std::string> vertex2 = strsplit(tokens[2].c_str(), '/');
+			std::vector<std::string> vertex3 = strsplit(tokens[3].c_str(), '/');
+
+			process_vertex(vertex1, indices, uvs, normals, textureArray, normalsArray);
+			process_vertex(vertex2, indices, uvs, normals, textureArray, normalsArray);
+			process_vertex(vertex3, indices, uvs, normals, textureArray, normalsArray);
+			getline(file, line);
+		}
 	}
+
+	vertexcount = vertices.size() * 3;
+	indexcount = indices.size();
+	verticesArray = new GLfloat[vertexcount];
+	indicesArray = new GLushort[indexcount];
+
+	int vertexIndex = 0;
+	for (vec3 vertex : vertices) {
+		verticesArray[vertexIndex++] = vertex.x;
+		verticesArray[vertexIndex++] = vertex.y;
+		verticesArray[vertexIndex++] = vertex.z;
+	}
+
+	for (auto i = 0; i < indices.size(); ++i) {
+		indicesArray[i] = indices.at(i);
+	}
+
+	//VAO
+	glGenVertexArrays(1, &mesh.vao);
+	glBindVertexArray(mesh.vao);
+
+	//POSITION
+	glGenBuffers(1, &mesh.posVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.posVBO);
+	glBufferData(GL_ARRAY_BUFFER, vertexcount * sizeof(GLfloat), verticesArray, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//TEXTURE COORDS
+	glGenBuffers(1, &mesh.uvVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.uvVBO);
+	glBufferData(GL_ARRAY_BUFFER, texcount * sizeof(GLfloat), textureArray, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//NORMALS
+	glGenBuffers(1, &mesh.normVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.normVBO);
+	glBufferData(GL_ARRAY_BUFFER, normalscount * sizeof(GLfloat), normalsArray, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//INDEX
+	glGenBuffers(1, &mesh.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indexcount, indicesArray, GL_STATIC_DRAW);
+
+	mesh.indexcount = indexcount;
+	mesh.vertexcount = vertexcount;
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	delete[] verticesArray;
+	delete[] normalsArray;
+	delete[] textureArray;
+	delete[] indicesArray;
+
+	BMT_LOG(INFO, "[%s] .obj file loaded!", path);
 
 	return mesh;
 }
@@ -115,6 +258,9 @@ Model load_model(const char* path) {
 		BMT_LOG(WARNING, "[%s] Extension not supported!", path);
 	}
 
+	model.mesh = mesh;
+	model.scale = V3(1, 1, 1);
+
 	return model;
 }
 
@@ -126,40 +272,26 @@ void dispose_model(Model& model) {
 
 void init3D() {
 	drawPool.clear();
-	usingCustomProjection = false;
-	customProjection = identity();
-	FOV = 90;
-	aspectRatio = get_window_width() / get_window_height();
-	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
 }
 
-void begin3D() {
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, get_window_width(), get_window_height());
+void begin3D(Shader shader_in, bool blending, bool depthTest) {
+	shader = shader_in;
+	start_shader(shader);
+
+	if (blending)
+		glEnable(GL_BLEND);
+	else
+		glDisable(GL_BLEND);
+	if (depthTest)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
+
 	drawPool.clear();
 }
 
-void begin3D(Camera* camera) {
-	cam = camera;
-	begin3D();
-}
-
-void begin3D(mat4 projection) {
-	usingCustomProjection = true;
-	customProjection = projection;
-	begin3D();
-}
-
-void begin3D(Camera* camera, mat4 projection) {
-	usingCustomProjection = true;
-	customProjection = projection;
-	cam = camera;
-	begin3D();
-}
-
 void draw_model(Model& model) {
-	drawPool[model.material.shader.ID].push_back(&model);
+	drawPool[model.texture.ID].push_back(&model);
 }
 
 void draw_cube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth) {
@@ -186,44 +318,18 @@ void end3D() {
 
 	//TODO: Could be optimized.
 	for (auto current : drawPool) {
+		//texture gets bound, then all models with that texture get drawn
 		std::vector<Model*>* modelList = &current.second;
-		Shader* currShader = &modelList->at(0)->material.shader;
-		start_shader(currShader);
-		//if (cam != NULL) loadMat4(currShader, "vw_matrix", create_view_matrix(*cam));
-		load_mat4(currShader, "projection_matrix", perspective);
+		bind_texture(modelList->at(0)->texture, 0);
 
 		for (u16 i = 0; i < modelList->size(); ++i) {
 			Model* currentModel = modelList->at(i);
+			upload_mat4(shader, "transformation", create_transformation_matrix(currentModel->pos, currentModel->rotate, currentModel->scale));
 			bind_mesh(currentModel->mesh);
-			bind_texture(currentModel->texture, 0);
-
-			load_mat4(
-				currShader,
-				"transformation_matrix",
-				create_transformation_matrix(currentModel->pos, currentModel->rotate, currentModel->scale)
-			);
-
-			unbind_texture(0);
+			glDrawElements(GL_TRIANGLES, currentModel->mesh.indexcount, GL_UNSIGNED_SHORT, 0);
 			unbind_mesh();
 		}
-
-		stop_shader();
+		unbind_texture(0);
 	}
-}
-
-void set_3D_render_viewport(u32 width, u32 height) {
-	glViewport(0, 0, width, height);
-	aspectRatio = width / height;
-	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
-
-}
-
-void set_FOV(f32 fieldOfView) {
-	FOV = fieldOfView;
-	aspectRatio = get_window_width() / get_window_height();
-	perspective = perspective_projection(FOV, aspectRatio, 0.1f, 999.0f);
-}
-
-f32 get_FOV() {
-	return FOV;
+	stop_shader();
 }

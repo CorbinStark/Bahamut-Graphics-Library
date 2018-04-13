@@ -158,12 +158,21 @@ inline f32 length(vec2 vec) {
 }
 
 INTERNAL
-inline void normalize(vec2& vec) {
+inline void normalize(vec2* vec) {
+	f32 len = length(*vec);
+	if (len != 0) {
+		vec->x /= len;
+		vec->y /= len;
+	}
+}
+
+INTERNAL
+inline vec2 normalize(vec2 vec) {
 	f32 len = length(vec);
 	if (len != 0) {
-		vec.x /= len;
-		vec.y /= len;
+		return V2(vec.x / len, vec.y / len);
 	}
+	return vec;
 }
 
 INTERNAL 
@@ -181,13 +190,22 @@ inline f32 length(vec3 vec) {
 }
 
 INTERNAL
-inline void normalize(vec3& vec) {
+inline void normalize(vec3* vec) {
+	f32 len = length(*vec);
+	if (len != 0) {
+		vec->x /= len;
+		vec->y /= len;
+		vec->z /= len;
+	}
+}
+
+INTERNAL
+inline vec3 normalize(vec3 vec) {
 	f32 len = length(vec);
 	if (len != 0) {
-		vec.x /= len;
-		vec.y /= len;
-		vec.z /= len;
+		return V3(vec.x / len, vec.y / len, vec.z / len);
 	}
+	return vec;
 }
 
 INTERNAL
@@ -210,14 +228,23 @@ inline f32 length(vec4 vec) {
 }
 
 INTERNAL
-inline void normalize(vec4& vec) {
+inline void normalize(vec4* vec) {
+	f32 len = length(*vec);
+	if (len != 0) {
+		vec->x /= len;
+		vec->y /= len;
+		vec->z /= len;
+		vec->w /= len;
+	}
+}
+
+INTERNAL
+inline vec4 normalize(vec4 vec) {
 	f32 len = length(vec);
 	if (len != 0) {
-		vec.x /= len;
-		vec.y /= len;
-		vec.z /= len;
-		vec.w /= len;
+		return V4(vec.x / len, vec.y / len, vec.z / len, vec.w / len);
 	}
+	return vec;
 }
 
 INTERNAL
@@ -226,11 +253,12 @@ inline f32 dot(vec4 a, vec4 b) {
 }
 
 //OPERATOR OVERLOADS
-//TODO: add overloads for vec3 and vec4 too
+
+// VEC2
 
 INTERNAL
 inline vec2 operator+(vec2 a, vec2 b) {
-	vec2 c;
+	vec2 c = { 0 };
 	c.x = a.x + b.x;
 	c.y = a.y + b.y;
 	return c;
@@ -238,7 +266,7 @@ inline vec2 operator+(vec2 a, vec2 b) {
 
 INTERNAL 
 inline vec2 operator-(vec2 a, vec2 b) {
-	vec2 c;
+	vec2 c = { 0 };
 	c.x = a.x - b.x;
 	c.y = a.y - b.y;
 	return c;
@@ -246,17 +274,124 @@ inline vec2 operator-(vec2 a, vec2 b) {
 
 INTERNAL
 inline vec2 operator*(vec2 a, vec2 b) {
-	vec2 c;
+	vec2 c = { 0 };
 	c.x = a.x * b.x;
 	c.y = a.y * b.y;
 	return c;
 }
 
 INTERNAL
+inline vec2 operator*(f32 a, vec2 b) {
+	vec2 c = { 0 };
+	c.x = a * b.x;
+	c.y = a * b.y;
+	return c;
+}
+
+INTERNAL
 inline vec2 operator/(vec2 a, vec2 b) {
-	vec2 c;
+	vec2 c = { 0 };
 	c.x = a.x / b.x;
 	c.y = a.y / b.y;
+	return c;
+}
+
+// VEC3 
+
+INTERNAL
+inline vec3 operator+(vec3 a, vec3 b) {
+	vec3 c = { 0 };
+	c.x = a.x + b.x;
+	c.y = a.y + b.y;
+	c.z = a.z + b.z;
+	return c;
+}
+
+INTERNAL
+inline vec3 operator-(vec3 a, vec3 b) {
+	vec3 c = { 0 };
+	c.x = a.x - b.x;
+	c.y = a.y - b.y;
+	c.z = a.z - b.z;
+	return c;
+}
+
+INTERNAL
+inline vec3 operator*(vec3 a, vec3 b) {
+	vec3 c = { 0 };
+	c.x = a.x * b.x;
+	c.y = a.y * b.y;
+	c.z = a.z * b.z;
+	return c;
+}
+
+INTERNAL
+inline vec3 operator*(f32 a, vec3 b) {
+	vec3 c = { 0 };
+	c.x = a * b.x;
+	c.y = a * b.y;
+	c.z = a * b.z;
+	return c;
+}
+
+INTERNAL
+inline vec3 operator/(vec3 a, vec3 b) {
+	vec3 c = { 0 };
+	c.x = a.x / b.x;
+	c.y = a.y / b.y;
+	c.z = a.z / b.z;
+	return c;
+}
+
+// VEC4
+
+INTERNAL
+inline vec4 operator+(vec4 a, vec4 b) {
+	vec4 c = { 0 };
+	c.x = a.x + b.x;
+	c.y = a.y + b.y;
+	c.z = a.z + b.z;
+	c.w = a.w + b.w;
+	return c;
+}
+
+INTERNAL
+inline vec4 operator-(vec4 a, vec4 b) {
+	vec4 c = { 0 };
+	c.x = a.x - b.x;
+	c.y = a.y - b.y;
+	c.z = a.z - b.z;
+	c.w = a.w - b.w;
+	return c;
+}
+
+INTERNAL
+inline vec4 operator*(vec4 a, vec4 b) {
+	vec4 c = { 0 };
+	c.x = a.x * b.x;
+	c.y = a.y * b.y;
+	c.z = a.z * b.z;
+	c.w = a.w * b.w;
+	return c;
+}
+
+INTERNAL
+inline vec4 operator*(f32 a, vec4 b) {
+	vec4 c = { 0 };
+	c.x = a * b.x;
+	c.y = a * b.y;
+	c.z = a * b.z;
+	c.w = a * b.w;
+	return c;
+}
+
+INTERNAL
+inline vec4 operator/(vec4 a, vec4 b) {
+	vec4 c = { 0 };
+	c.x = a.x / b.x;
+	c.y = a.y / b.y;
+	c.z = a.z / b.z;
+	c.w = a.w / b.w;
 	return c;
 }
 
@@ -273,6 +408,21 @@ inline bool operator==(vec3 a, vec3 b) {
 INTERNAL
 inline bool operator==(vec4 a, vec4 b) {
 	return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
+}
+
+INTERNAL
+inline bool point_inside_triangle(vec3 point, vec3 tri1, vec3 tri2, vec3 tri3) {
+	vec3 u = tri2 - tri1;
+	vec3 v = tri3 - tri1;
+	vec3 w = point - tri1;
+	vec3 n = cross(u, v);
+
+	f32 y = (dot(cross(u, w), n) / dot(n, n));
+	f32 b = (dot(cross(u, w), n) / dot(n, n));
+	f32 a = 1 - y - b;
+	vec3 p = (a * tri1) + (b * tri2) + (y * tri3);
+
+	return (a >= 0 && a <= 1 && b >= 0 && b <= 1 && y >= 0 && y <= 1);
 }
 
 //================================================
@@ -325,7 +475,7 @@ inline mat4 operator*(const mat4 a, const mat4 b) {
 }
 
 INTERNAL
-inline void operator*=(mat4 a, mat4 b) {
+inline void operator*=(mat4& a, const mat4 b) {
 	f32 data[4 * 4];
 	for (u8 y = 0; y < 4; ++y) {
 		for (u8 x = 0; x < 4; ++x) {

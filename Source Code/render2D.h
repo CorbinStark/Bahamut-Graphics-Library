@@ -50,19 +50,6 @@ struct VertexData {
 #define BATCH_INDICE_SIZE	    BATCH_MAX_SPRITES * 6
 #define BATCH_MAX_TEXTURES		16
 
-enum StretchMode {
-	STRETCH_NONE,
-	STRETCH_PROJECTION,
-	STRETCH_VIEWPORT
-};
-
-enum AspectMode {
-	ASPECT_NONE,
-	ASPECT_KEEP,
-	ASPECT_KEEP_WIDTH,
-	ASPECT_KEEP_HEIGHT
-};
-
 //==========================================================================================
 //Description: Initializes the 2D renderer with all the data it needs
 //
@@ -74,11 +61,14 @@ void init2D(i32 x, i32 y, u32 width, u32 height);
 //==========================================================================================
 //Description: Begins the renderer. You must do all draw calls in between
 //	begin2D and end2D.
+//
+//Parameters: 
+//		-A shader to process the draw commands. Use load_default_shader_2D() to get the
+//			default shader.
+//		-(OPTIONAL) Whether or not to blend alpha (default = true)
+//		-(OPTIONAL) Whether or not to test depth (default = false)
 //==========================================================================================
-void begin2D();
-void begin2D(mat4 projection);
-void begin2D(Shader shader);
-void begin2D(Shader shader, mat4 projection);
+void begin2D(Shader shader, bool blending = true, bool depthTest = false);
 //==========================================================================================
 //Description: Draws a texture onto the bound framebuffer (by default the window)
 //
@@ -160,16 +150,17 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest, f32 r, f32 g, f32 b, f
 void draw_texture_EX(Texture tex, Rect source, Rect dest, vec4 color);
 void draw_texture_EX(Texture tex, Rect source, Rect dest, vec2 origin);
 //==========================================================================================
-//Description: Draws a render texture onto the bound framebuffer (by default the window)
+//Description: Draws a framebuffer onto another bound framebuffer (by default the window)
 //
 //Parameters: 
-//		-A render texture to render
+//		-A framebuffer to render
 //		-An x and y position
 //
 //Comments: If the texture has it's flip_flag set to FLIP_HORIZONTAL or 
 //		FLIP_VERTICAL or both, it will be flipped accordingly when drawn.
+//		Calling a draw_texture function with the framebuffer's texture will also work.
 //==========================================================================================
-void draw_render_texture(RenderTexture tex, i32 xPos, i32 yPos);
+void draw_framebuffer(Framebuffer buffer, i32 xPos, i32 yPos);
 //==========================================================================================
 //Description: Draws a rectangle onto the bound framebuffer (by default the window)
 //
@@ -196,13 +187,10 @@ void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r = 255.0f, 
 //===============================================================================
 void end2D();
 
-//StretchMode only applies to 2D
-void set_stretch_mode(StretchMode mode);
-//AspectMode only applies to 2D
-void set_aspect_mode(AspectMode mode);
-
-Rect get_viewport_rect();
-void set_2D_render_viewport(i32 x, i32 y, u32 width, u32 height, u32 virtual_width, u32 virtual_height);
+f32 get_blackbar_width(f32 aspect);
+f32 get_blackbar_height(f32 aspect);
+Rect limit_to_aspect_ratio(f32 aspect);
+Shader load_default_shader_2D();
 
 void dispose2D();
 

@@ -47,23 +47,104 @@ Texture load_texture(unsigned char* pixels, u32 width, u32 height, u16 param);
 Texture load_texture(const char* filepath, u16 param);
 void dispose_texture(Texture& texture);
 
-void blit_texture(Texture src, Texture dest, Rect drawFrom, Rect drawTo);
-
 void set_texture_pixels(Texture texture, unsigned char* pixels, u32 width, u32 height);
 void set_texture_pixels_from_file(Texture texture, const char* filepath);
 
 void bind_texture(Texture texture, u32 slot);
 void unbind_texture(u32 slot);
 
-struct RenderTexture {
-	GLuint framebufferID;
-	GLuint textureID;
-	unsigned long flip_flag;
-	int width;
-	int height;
+//==========================================================================================
+//Description: Sets the wrap_x of the texture (horizontal wrapping)
+//
+//Parameters: 
+//		-A texture to set parameter of
+//		-The type of wrapping to do
+//
+//Comments: Unbinds whatever is in slot 0
+//==========================================================================================
+INTERNAL inline
+void set_texture_wrap_x(Texture texture, u32 type) {
+	bind_texture(texture, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type);
+	unbind_texture(0);
+}
+
+//==========================================================================================
+//Description: Sets the wrap_y of the texture (vertical wrapping)
+//
+//Parameters: 
+//		-A texture to set parameter of
+//		-The type of wrapping to do
+//
+//Comments: Unbinds whatever is in slot 0
+//==========================================================================================
+INTERNAL inline
+void set_texture_wrap_y(Texture texture, u32 type) {
+	bind_texture(texture, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, type);
+	unbind_texture(0);
+}
+
+struct Framebuffer {
+	GLuint ID;
+	Texture texture;
 };
 
-void create_render_texture(int width, int height);
-void create_render_texture(Texture base);
+INTERNAL inline
+Framebuffer create_framebuffer(u32 width, u32 height, u16 param) {
+	Framebuffer buffer;
+	buffer.texture.width = width;
+	buffer.texture.height = height;
+	buffer.texture.flip_flag = 0;
+
+	glGenTextures(1, &buffer.texture.ID);
+	glBindTexture(GL_TEXTURE_2D, buffer.texture.ID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &buffer.ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, buffer.ID);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.texture.ID, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+		BMT_LOG(INFO, "Framebuffer #%d successfully created", buffer.ID);
+	}
+	else {
+		BMT_LOG(WARNING, "Framebuffer #%d not complete!", buffer.ID);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return buffer;
+}
+
+INTERNAL inline
+void dispose_framebuffer(Framebuffer buffer) {
+	dispose_texture(buffer.texture);
+	glDeleteFramebuffers(1, &buffer.ID);
+}
+
+INTERNAL inline
+void bind_framebuffer(Framebuffer buffer) {
+	glBindFramebuffer(GL_FRAMEBUFFER, buffer.ID);
+}
+
+INTERNAL inline
+void unbind_framebuffer() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+//==========================================================================================
+//Description: Clears the bound framebuffer (by default the window)
+//
+//Comments: The window is cleared by end_drawing() so no need to do it yourself.
+//			If you want to clear the screen mid-frame for some reason, this will do that.
+//==========================================================================================
+INTERNAL inline
+void clear_bound_framebuffer() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
 #endif

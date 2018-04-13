@@ -30,11 +30,13 @@
 #define AUDIO_H
 
 #include "defines.h"
+#include <AL/alc.h>
+#include <AL/al.h>
 
 struct Sound {
-	GLuint src;
-	GLuint buffer;
-	GLint format;
+	ALuint src;
+	ALuint buffer;
+	ALint format;
 };
 
 void init_audio();

@@ -87,6 +87,9 @@ void set_mouse_locked(bool locked);
 void set_mouse_hidden(bool hidden);
 void set_vsync(bool vsync);
 
+void set_viewport(i32 x, i32 y, i32 width, i32 height);
+void resize_viewport(i32 width, i32 height);
+
 void set_virtual_size(int v_width, int v_height);
 int get_virtual_width();
 int get_virtual_height();

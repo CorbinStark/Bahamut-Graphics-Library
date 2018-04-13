@@ -152,10 +152,6 @@ void dispose_texture(Texture& texture) {
 	texture.ID = 0;
 }
 
-void blit_texture(Texture src, Texture dest, Rect drawFrom, Rect drawTo) {
-
-}
-
 void set_texture_pixels(Texture texture, unsigned char* pixels, u32 width, u32 height) {
 	glBindTexture(GL_TEXTURE_2D, texture.ID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);

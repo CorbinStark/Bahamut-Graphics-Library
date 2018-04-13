@@ -31,34 +31,50 @@
 #include <iostream>
 #include <vector>
 
-GLint get_uniform_location(Shader* shader, const GLchar* name) {
-	//GLint location = 0;
-	//try {
-	//	location = _locations.get(name);
-	//}
-	//catch (std::out_of_range& const e) {
-	//	std::cout << "Caching uniform location of the name: " << name << std::endl;
-	//	_locations.insert(name, glGetUniformLocation(_progID, name)); //so it doesnt display error message again
-	//}
-	return glGetUniformLocation(shader->ID, name);
+GLint get_uniform_location(Shader shader, const GLchar* name) {
+	return glGetUniformLocation(shader.ID, name);
 }
 
-Shader load_shader(const GLchar* vertexfile, const GLchar* fragmentfile) {
+Shader load_shader_2D(const GLchar* vertexfile, const GLchar* fragmentfile) {
 	Shader shader;
 	shader.vertexshaderID = load_shader_file(vertexfile, GL_VERTEX_SHADER);
 	shader.fragshaderID = load_shader_file(fragmentfile, GL_FRAGMENT_SHADER);
-
 	shader.ID = glCreateProgram();
+
 	glAttachShader(shader.ID, shader.vertexshaderID);
 	glAttachShader(shader.ID, shader.fragshaderID);
 	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glBindAttribLocation(shader.ID, 0, "position");
+	glBindAttribLocation(shader.ID, 1, "color");
+	glBindAttribLocation(shader.ID, 2, "uv");
+	glBindAttribLocation(shader.ID, 3, "texid");
 	glLinkProgram(shader.ID);
 	glValidateProgram(shader.ID);
-	glUseProgram(shader.ID);
+
+	glUseProgram(0);
 	return shader;
 }
 
-Shader load_shader_from_strings(const GLchar* vertexstring, const GLchar* fragmentstring) {
+Shader load_shader_3D(const GLchar* vertexfile, const GLchar* fragmentfile) {
+	Shader shader;
+	shader.vertexshaderID = load_shader_file(vertexfile, GL_VERTEX_SHADER);
+	shader.fragshaderID = load_shader_file(fragmentfile, GL_FRAGMENT_SHADER);
+	shader.ID = glCreateProgram();
+
+	glAttachShader(shader.ID, shader.vertexshaderID);
+	glAttachShader(shader.ID, shader.fragshaderID);
+	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glBindAttribLocation(shader.ID, 0, "position");
+	glBindAttribLocation(shader.ID, 1, "uv");
+	glBindAttribLocation(shader.ID, 2, "normal");
+	glLinkProgram(shader.ID);
+	glValidateProgram(shader.ID);
+
+	glUseProgram(0);
+	return shader;
+}
+
+Shader load_shader_2D_from_strings(const GLchar* vertexstring, const GLchar* fragmentstring) {
 	Shader shader;
 	shader.vertexshaderID = load_shader_string(vertexstring, GL_VERTEX_SHADER);
 	shader.fragshaderID = load_shader_string(fragmentstring, GL_FRAGMENT_SHADER);
@@ -67,48 +83,72 @@ Shader load_shader_from_strings(const GLchar* vertexstring, const GLchar* fragme
 	glAttachShader(shader.ID, shader.vertexshaderID);
 	glAttachShader(shader.ID, shader.fragshaderID);
 	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glBindAttribLocation(shader.ID, 0, "position");
+	glBindAttribLocation(shader.ID, 1, "color");
+	glBindAttribLocation(shader.ID, 2, "uv");
+	glBindAttribLocation(shader.ID, 3, "texid");
 	glLinkProgram(shader.ID);
 	glValidateProgram(shader.ID);
-	glUseProgram(shader.ID);
+
+	glUseProgram(0);
 	return shader;
 }
 
-void load_float(Shader* shader, const GLchar* name, GLfloat value) {
+Shader load_shader_3D_from_strings(const GLchar* vertexstring, const GLchar* fragmentstring) {
+	Shader shader;
+	shader.vertexshaderID = load_shader_string(vertexstring, GL_VERTEX_SHADER);
+	shader.fragshaderID = load_shader_string(fragmentstring, GL_FRAGMENT_SHADER);
+
+	shader.ID = glCreateProgram();
+	glAttachShader(shader.ID, shader.vertexshaderID);
+	glAttachShader(shader.ID, shader.fragshaderID);
+	glBindFragDataLocation(shader.ID, 0, "outColor");
+	glBindAttribLocation(shader.ID, 0, "position");
+	glBindAttribLocation(shader.ID, 1, "uv");
+	glBindAttribLocation(shader.ID, 2, "normal");
+	glLinkProgram(shader.ID);
+	glValidateProgram(shader.ID);
+
+	glUseProgram(0);
+	return shader;
+}
+
+void upload_float(Shader shader, const GLchar* name, GLfloat value) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform1f(location, value);
 }
 
-void load_float_array(Shader* shader, const GLchar* name, GLfloat arr[], int count) {
+void upload_float_array(Shader shader, const GLchar* name, GLfloat arr[], int count) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform1fv(location, count, arr);
 }
 
-void load_int(Shader* shader, const GLchar* name, GLint value) {
+void upload_int(Shader shader, const GLchar* name, GLint value) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform1i(location, value);
 }
 
-void load_int_array(Shader* shader, const GLchar* name, GLint arr[], int count) {
+void upload_int_array(Shader shader, const GLchar* name, GLint arr[], int count) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform1iv(location, count, arr);
 }
 
-void load_vec2(Shader* shader, const GLchar* name, vec2 vec) {
+void upload_vec2(Shader shader, const GLchar* name, vec2 vec) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform2f(location, vec.x, vec.y);
 }
 
-void load_vec3(Shader* shader, const GLchar* name, vec3 vec) {
+void upload_vec3(Shader shader, const GLchar* name, vec3 vec) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform3f(location, vec.x, vec.y, vec.z);
 }
 
-void load_vec4(Shader* shader, const GLchar* name, vec4 vec) {
+void upload_vec4(Shader shader, const GLchar* name, vec4 vec) {
 	GLint location = get_uniform_location(shader, name);
 	glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
 }
 
-void load_bool(Shader* shader, const GLchar* name, bool value) {
+void upload_bool(Shader shader, const GLchar* name, bool value) {
 	int boolean = 0;
 	if (value)
 		boolean = 1;
@@ -117,7 +157,7 @@ void load_bool(Shader* shader, const GLchar* name, bool value) {
 	glUniform1f((GLfloat)location, boolean);
 }
 
-void load_mat4(Shader* shader, const GLchar* name, mat4 mat) {
+void upload_mat4(Shader shader, const GLchar* name, mat4 mat) {
 	GLint location = get_uniform_location(shader, name);
 	glUniformMatrix4fv(location, 1, GL_FALSE, mat.elements);
 }
@@ -176,8 +216,8 @@ GLuint load_shader_string(const GLchar* shaderSource, GLuint type) {
 	return shaderID;
 }
 
-void start_shader(Shader* shader) {
-	glUseProgram(shader->ID);
+void start_shader(Shader shader) {
+	glUseProgram(shader.ID);
 }
 
 void stop_shader() {

@@ -28,8 +28,6 @@
 
 #include "audio.h"
 #include <string.h>
-#include <AL/alc.h>
-#include <AL/al.h>
 
 //INTERNAL VARIABLES
 INTERNAL u8 masterVolume;
@@ -110,9 +108,13 @@ void init_audio() {
 	if (!device)
 		BMT_LOG(FATAL_ERROR, "Could not open audio device!");
 
+	context = NULL;
 	context = alcCreateContext(device, NULL);
-	if (context == NULL) {
+	if (context == NULL || alcMakeContextCurrent(context) == AL_FALSE) {
+		if (context != NULL) alcDestroyContext(context);
+			
 		alcCloseDevice(device);
+
 		BMT_LOG(FATAL_ERROR, "Could not initialize audio context!");
 	}
 
@@ -149,8 +151,8 @@ u8 get_master_volume() {
 }
 
 Sound load_sound(const char* filename) {
-	Sound sound;
-	SoundData data;
+	Sound sound = { 0 };
+	SoundData data = { 0 };
 
 	if (has_extension(filename, "wav"))       data = loadWAV(filename);
 	else if (has_extension(filename, "ogg"))  data = loadOGG(filename);
@@ -175,6 +177,15 @@ Sound load_sound(const char* filename) {
 		BMT_LOG(WARNING, "Only MONO and STEREO channels are supported.");
 
 	alGenSources(1, &sound.src);
+
+	if (sound.src == 0) {
+		BMT_LOG(WARNING, "[%s] Source not generated for sound!", filename);
+	}
+	ALenum err = alGetError();
+	if (err != AL_NO_ERROR) {
+		BMT_LOG(WARNING, "[%s] alGenSources produced an error", filename);
+	}
+
 	alSourcef(sound.src, AL_PITCH, 1.0f);
 	alSourcef(sound.src, AL_GAIN, 1.0f);
 	alSource3f(sound.src, AL_POSITION, 0.0f, 0.0f, 0.0f);
@@ -182,6 +193,11 @@ Sound load_sound(const char* filename) {
 	alSourcei(sound.src, AL_LOOPING, AL_FALSE);
 
 	alGenBuffers(1, &sound.buffer);
+
+	if (sound.buffer == 0) {
+		BMT_LOG(WARNING, "[%s] Buffer not generated for sound!", filename);
+	}
+
 	u32 buffer_size = data.channels * data.sampleCount * data.sampleSize / 8;
 	alBufferData(sound.buffer, sound.format, data.data, buffer_size, data.sampleRate);
 	alSourcei(sound.src, AL_BUFFER, sound.buffer);
