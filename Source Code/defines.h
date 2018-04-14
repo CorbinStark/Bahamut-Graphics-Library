@@ -149,13 +149,6 @@ inline bool has_extension(const char* filename, const char* extension) {
 }
 
 INTERNAL
-void inline swap(int& a, int& b) {
-	int c = b;
-	b = a;
-	a = c;
-}
-
-INTERNAL
 inline double getDistanceM(f32 x1, f32 y1, f32 x2, f32 y2) {
 	double dx = std::abs(x1 - x2);
 	double dy = std::abs(y1 - y2);

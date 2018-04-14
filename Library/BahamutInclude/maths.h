@@ -410,21 +410,6 @@ inline bool operator==(vec4 a, vec4 b) {
 	return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
 }
 
-INTERNAL
-inline bool point_inside_triangle(vec3 point, vec3 tri1, vec3 tri2, vec3 tri3) {
-	vec3 u = tri2 - tri1;
-	vec3 v = tri3 - tri1;
-	vec3 w = point - tri1;
-	vec3 n = cross(u, v);
-
-	f32 y = (dot(cross(u, w), n) / dot(n, n));
-	f32 b = (dot(cross(u, w), n) / dot(n, n));
-	f32 a = 1 - y - b;
-	vec3 p = (a * tri1) + (b * tri2) + (y * tri3);
-
-	return (a >= 0 && a <= 1 && b >= 0 && b <= 1 && y >= 0 && y <= 1);
-}
-
 //================================================
 //Description: 4x4 matrix for graphics calculations. 
 //
@@ -634,6 +619,49 @@ inline mat4 create_transformation_matrix(const vec3 translation, const vec3 rota
 		rotation.x, rotation.y, rotation.z,
 		scale_vec.x, scale_vec.y, scale_vec.z
 	);
+}
+
+//ALGORITHMS
+
+
+INTERNAL
+inline bool point_inside_triangle(vec3 point, vec3 tri1, vec3 tri2, vec3 tri3) {
+	vec3 u = tri2 - tri1;
+	vec3 v = tri3 - tri1;
+	vec3 w = point - tri1;
+	vec3 n = cross(u, v);
+
+	f32 y = (dot(cross(u, w), n) / dot(n, n));
+	f32 b = (dot(cross(u, w), n) / dot(n, n));
+	f32 a = 1 - y - b;
+	vec3 p = (a * tri1) + (b * tri2) + (y * tri3);
+
+	return (a >= 0 && a <= 1 && b >= 0 && b <= 1 && y >= 0 && y <= 1);
+}
+
+INTERNAL
+inline mat4 look_at(const vec3 camera, const vec3 center, const vec3 up = V3(0, 1, 0)) {
+	mat4 mat = identity();
+
+	vec3 dir = normalize(center - camera);
+	vec3 upNorm = normalize(up);
+	vec3 right = normalize(cross(dir, upNorm));
+	upNorm = cross(right, dir);
+
+	mat.m00 = right.x;
+	mat.m10 = right.y;
+	mat.m20 = right.z;
+	mat.m01 = upNorm.x;
+	mat.m11 = upNorm.y;
+	mat.m21 = upNorm.z;
+	mat.m02 = -dir.x;
+	mat.m12 = -dir.y;
+	mat.m22 = -dir.z;
+	mat.m30 = -dot(right, camera);
+	mat.m31 = -dot(upNorm, camera);
+	mat.m32 =  dot(dir, camera);
+
+	return mat;
 }
 
 #endif

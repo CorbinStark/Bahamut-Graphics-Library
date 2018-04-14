@@ -160,7 +160,6 @@ Shader load_default_shader_2D() {
 }
 
 void init2D(i32 x, i32 y, u32 width, u32 height) {
-	shader = load_default_shader_2D();
 	texcount = indexcount = 0;
 
 	locations[0] = "tex1";

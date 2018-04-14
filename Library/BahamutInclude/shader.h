@@ -44,7 +44,6 @@ struct Shader {
 //Parameters: 
 //		-A path to a vertex shader file
 //		-A path to a fragment shader file
-//		-(Optional) Customized locations
 //==========================================================================================
 Shader load_shader_2D(const GLchar* vertexfile, const GLchar* fragmentfile);
 Shader load_shader_3D(const GLchar* vertexfile, const GLchar* fragmentfile);

@@ -41,8 +41,8 @@
 #endif
 
 struct Mesh {
-	u16 vertexcount;
-	u16 indexcount;
+	u32 vertexcount;
+	u32 indexcount;
 	GLuint vao;
 	GLuint posVBO;
 	GLuint uvVBO;
@@ -65,22 +65,26 @@ struct Model {
 	Mesh mesh;
 	Material material;
 	Texture texture;
+	vec4 color;
 	vec3 pos;
 	vec3 rotate;
 	vec3 scale;
 };
 
-Model load_model(const char* path);
+Model load_model(const char* path, const vec4 color = V4(255, 255, 255, 255));
 void dispose_model(Model& model);
+void dispose_mesh(Mesh& mesh);
 
 void init3D();
 
 void begin3D(Shader shader, bool blending = false, bool depthTest = true);
 void draw_model(Model& model);
-void draw_cube(f32 x, f32 y, f32 z, f32 width, f32 height, f32 depth);
-void draw_sphere(f32 x, f32 y, f32 z, f32 radius);
+void draw_cube(vec3 pos, vec3 scale, vec3 rotation, Texture tex);
+void draw_cube(vec3 pos, vec3 scale, vec3 rotation, vec4 color);
+void draw_sphere(f32 x, f32 y, f32 z, f32 radius, Texture tex);
+void draw_sphere(f32 x, f32 y, f32 z, f32 radius, vec4 color);
 void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex);
-void draw_polygon();
+void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, Texture tex);
 void end3D();
 
 #endif
