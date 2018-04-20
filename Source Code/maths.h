@@ -605,9 +605,9 @@ INTERNAL
 inline mat4 create_transformation_matrix(f32 x, f32 y, f32 z, f32 rotX, f32 rotY, f32 rotZ, f32 scaleX, f32 scaleY, f32 scaleZ) {
 	mat4 mat = identity();
 	mat *= translation(x, y, z);
-	mat *= rotateX(rotX);
-	mat *= rotateY(rotY);
-	mat *= rotateZ(rotZ);
+	mat *= rotation(rotX, 1, 0, 0);
+	mat *= rotation(rotY, 0, 1, 0);
+	mat *= rotation(rotZ, 0, 0, 1);
 	mat *= scale(scaleX, scaleY, scaleZ);
 	return mat;
 }

@@ -576,7 +576,7 @@ void draw_sphere(f32 x, f32 y, f32 z, f32 radius, vec4 color) {
 
 void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex) {
 	billboardModel.pos = V3(x, y, z);
-	billboardModel.scale = V3(width, height, 1);
+	billboardModel.scale = V3(1, width, height);
 	billboardModel.rotate = V3(180, 90, 0);
 	billboardModel.texture = tex;
 	drawPool[tex.ID].push_back(&billboardModel);
@@ -584,10 +584,18 @@ void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex) {
 
 void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, Texture tex) {
 	billboardModel.pos = pos;
-	billboardModel.scale = V3(scale, 1.0f);
+	billboardModel.scale = V3(1.0f, scale.x, scale.y);
 	billboardModel.rotate = rotation;
 	billboardModel.texture = tex;
 	drawPool[tex.ID].push_back(&billboardModel);
+}
+
+void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, vec4 color) {
+	billboardModel.pos = pos;
+	billboardModel.scale = V3(scale, 1.0f);
+	billboardModel.rotate = rotation;
+	billboardModel.color = color;
+	drawPool[0].push_back(&billboardModel);
 }
 
 void end3D() {
@@ -602,7 +610,13 @@ void end3D() {
 		for (u16 i = 0; i < modelList->size(); ++i) {
 			Model* currentModel = modelList->at(i);
 			upload_mat4(shader, "transformation", create_transformation_matrix(currentModel->pos, currentModel->rotate, currentModel->scale));
-			upload_vec4(shader, "color", normalize(currentModel->color));
+			if (modelList->at(0)->texture.ID == 0) {
+				upload_bool(shader, "textureIsBound", false);
+			}
+			else {
+				upload_bool(shader, "textureIsBound", true);
+			}
+			upload_vec4(shader, "color", V4(currentModel->color.x / 255.0f, currentModel->color.y / 255.0f, currentModel->color.z / 255.0f, currentModel->color.w / 255.0f));
 			bind_mesh(currentModel->mesh);
 			glDrawElements(GL_TRIANGLES, currentModel->mesh.indexcount, GL_UNSIGNED_SHORT, 0);
 			unbind_mesh();

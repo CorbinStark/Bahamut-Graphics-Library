@@ -95,8 +95,8 @@ in vec4 color;
 in vec2 uv;
 in float texid;
 
-uniform mat4 pr_matrix = mat4(1.0);
-uniform mat4 vw_matrix = mat4(1.0);
+uniform mat4 projection = mat4(1.0);
+uniform mat4 view = mat4(1.0);
 
 out vec4 pass_color;
 out vec2 pass_uv;
@@ -107,7 +107,7 @@ void main() {
 	pass_uv = uv;
 	pass_texid = texid;
 	
-	gl_Position = pr_matrix * vw_matrix * vec4(position, 1.0, 1.0);
+	gl_Position = projection * view * vec4(position, 1.0, 1.0);
 }
 
 )FOO";
@@ -951,7 +951,6 @@ Rect limit_to_aspect_ratio(f32 aspect) {
 		new_width = (i32)(screen_height * aspect);
 	}
 	return rect((screen_width - new_width) / 2, (screen_height - new_height) / 2, new_width, new_height);
-	//glViewport(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
 }
 
 void dispose2D() {

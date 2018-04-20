@@ -85,6 +85,7 @@ void draw_sphere(f32 x, f32 y, f32 z, f32 radius, Texture tex);
 void draw_sphere(f32 x, f32 y, f32 z, f32 radius, vec4 color);
 void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex);
 void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, Texture tex);
+void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, vec4 color);
 void end3D();
 
 #endif
