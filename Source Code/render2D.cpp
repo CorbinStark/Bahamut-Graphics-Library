@@ -29,6 +29,10 @@
 #include "render2D.h"
 #include "window.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 INTERNAL GLuint vao;
 INTERNAL GLuint vbo;
 INTERNAL GLuint ebo;
@@ -117,23 +121,23 @@ GLfloat DEFAULT_UVS[8] = {
 	0, 0, 0, 1,
 	1, 1, 1, 0
 };
-INTERNAL 
+INTERNAL
 GLfloat FLIP_HORIZONTAL_UVS[8] = {
 	1, 0, 1, 1,
 	0, 1, 0, 0
 };
-INTERNAL 
+INTERNAL
 GLfloat FLIP_VERTICAL_UVS[8] = {
 	0, 1, 0, 0,
 	1, 0, 1, 1
 };
-INTERNAL 
+INTERNAL
 GLfloat FLIP_BOTH_UVS[8] = {
 	1, 1, 1, 0,
 	0, 0, 0, 1
 };
 
-INTERNAL 
+INTERNAL
 int submit_tex(Texture tex) {
 	int texSlot = 0;
 	bool found = false;
@@ -510,7 +514,7 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	newY = yPos;
 	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
 	buffer->pos.y = sineDegree * (newX - originX) + cosineDegree * (newY - originY) + originY;
-	buffer->color.x = 1; 
+	buffer->color.x = 1;
 	buffer->color.y = 1;
 	buffer->color.z = 1;
 	buffer->color.w = 1;
@@ -518,7 +522,7 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	buffer->uv.x = uvs[7];
 	buffer->texid = texSlot;
 	buffer++;
-	
+
 	indexcount += 6;
 }
 
@@ -542,7 +546,7 @@ void draw_texture_EX(Texture tex, Rect source, Rect dest, f32 r, f32 g, f32 b, f
 		EX_UVS[5] = (source.y + source.height) / tex.height;
 		EX_UVS[6] = (source.x + source.width) / tex.width;
 		EX_UVS[7] = source.y / tex.height;
-	} 
+	}
 	else if (tex.flip_flag & FLIP_HORIZONTAL) {
 		EX_UVS[0] = (source.x + source.width) / tex.width;
 		EX_UVS[1] = source.y / tex.height;
@@ -864,7 +868,7 @@ void draw_text(Font& font, std::string str, i32 xPos, i32 yPos, f32 r, f32 g, f3
 
 		buffer->pos.x = x + tex.width;
 		buffer->pos.y = y;
-		buffer->color.x = r; 
+		buffer->color.x = r;
 		buffer->color.y = g;
 		buffer->color.z = b;
 		buffer->color.w = 1;
@@ -959,3 +963,7 @@ void dispose2D() {
 	glDeleteBuffers(1, &ebo);
 	dispose_shader(shader);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

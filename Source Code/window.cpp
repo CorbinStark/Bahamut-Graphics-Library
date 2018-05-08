@@ -33,6 +33,10 @@
 #include <iostream>
 #include <thread>
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 INTERNAL GLFWwindow* glfw_window;
 INTERNAL int x;
 INTERNAL int y;
@@ -421,6 +425,25 @@ vec2 get_mouse_pos() {
 	return V2((float)mousex, (float)mousey);
 }
 
+void get_mouse_pos_adjusted(double* mousexPtr, double* mouseyPtr, Rect viewport) {
+	*mousexPtr = mousex;
+	*mouseyPtr = mousey;
+
+	*mousexPtr -= viewport.x;
+	*mouseyPtr -= viewport.y;
+	*mousexPtr /= ((f32)viewport.width / (f32)get_virtual_width());
+	*mouseyPtr /= ((f32)viewport.height / (f32)get_virtual_height());
+}
+
+vec2 get_mouse_pos_adjusted(Rect viewport) {
+	vec2 mousepos = V2((f32)mousex, (f32)mousey);
+	mousepos.x -= viewport.x;
+	mousepos.y -= viewport.y;
+	mousepos.x /= ((f32)viewport.width / (f32)get_virtual_width());
+	mousepos.y /= ((f32)viewport.height / (f32)get_virtual_height());
+	return mousepos;
+}
+
 void set_window_should_close(bool shouldClose) {
 	glfwSetWindowShouldClose(glfw_window, shouldClose);
 }
@@ -435,6 +458,12 @@ void dispose_window() {
 
 void set_mouse_locked(bool mouse_locked) {
 	locked = mouse_locked;
+	if (locked)
+		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else if (hidden)
+		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	else
+		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
 void set_virtual_size(int v_width, int v_height) {
@@ -473,3 +502,7 @@ void set_mouse_hidden(bool mouse_hidden) {
 	else
 		glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

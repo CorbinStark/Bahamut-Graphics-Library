@@ -35,6 +35,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H 
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 struct Character {
 	Texture	texture;
 	vec2	size;
@@ -77,5 +81,9 @@ inline const char* format_text(const char* text, ...) {
 
 	return buffer;
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

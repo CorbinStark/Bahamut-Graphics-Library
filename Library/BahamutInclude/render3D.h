@@ -31,10 +31,13 @@
 
 #include <vector>
 #include "defines.h"
-#include "camera.h"
 #include "maths.h"
 #include "shader.h"
 #include "texture.h"
+
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
 
 #ifndef MAX_MODELS
 #define MAX_MODELS 10000
@@ -78,13 +81,18 @@ void dispose_mesh(Mesh& mesh);
 void init3D();
 
 void begin3D(Shader shader, bool blending = false, bool depthTest = true);
-void draw_model(Model& model);
+void draw_model(Model model);
 void draw_cube(vec3 pos, vec3 scale, vec3 rotation, Texture tex);
 void draw_cube(vec3 pos, vec3 scale, vec3 rotation, vec4 color);
 void draw_sphere(f32 x, f32 y, f32 z, f32 radius, Texture tex);
 void draw_sphere(f32 x, f32 y, f32 z, f32 radius, vec4 color);
 void draw_billboard(f32 x, f32 y, f32 z, f32 width, f32 height, Texture tex);
 void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, Texture tex);
+void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, vec4 color);
 void end3D();
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

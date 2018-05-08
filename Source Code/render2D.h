@@ -33,6 +33,10 @@
 #include "shader.h"
 #include "font.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 struct VertexData {
 	vec2 pos;
 	vec4 color; //32 bit color (8 for R, 8 for G, 8 for B, 8 for A)
@@ -197,5 +201,9 @@ void dispose2D();
 u32 inline rgba_to_u32(i32 r, i32 g, i32 b, i32 a) {
 	return a << 24 | b << 16 | g << 8 | r;
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

@@ -32,6 +32,10 @@
 #include <vector>
 #include "defines.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 const int FLIP_HORIZONTAL = 1;
 const int FLIP_VERTICAL = 2;
 
@@ -90,8 +94,13 @@ struct Framebuffer {
 	Texture texture;
 };
 
+#define DEPTHBUFFER 0
+#define COLORBUFFER 1
+
 INTERNAL inline
-Framebuffer create_framebuffer(u32 width, u32 height, u16 param) {
+Framebuffer create_framebuffer(u32 width, u32 height, u16 param, u8 buffertype) {
+	assert(buffertype < 2);
+
 	Framebuffer buffer;
 	buffer.texture.width = width;
 	buffer.texture.height = height;
@@ -99,16 +108,27 @@ Framebuffer create_framebuffer(u32 width, u32 height, u16 param) {
 
 	glGenTextures(1, &buffer.texture.ID);
 	glBindTexture(GL_TEXTURE_2D, buffer.texture.ID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	if (buffertype == COLORBUFFER) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	}
+	else if(buffertype == DEPTHBUFFER) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenFramebuffers(1, &buffer.ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, buffer.ID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.texture.ID, 0);
+
+	if(buffertype == COLORBUFFER)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.texture.ID, 0);
+	else if(buffertype == DEPTHBUFFER)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_TEXTURE_2D, buffer.texture.ID, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
 		BMT_LOG(INFO, "Framebuffer #%d successfully created", buffer.ID);
@@ -118,6 +138,16 @@ Framebuffer create_framebuffer(u32 width, u32 height, u16 param) {
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return buffer;
+}
+
+INTERNAL inline
+Framebuffer create_colorbuffer(u32 width, u32 height, u16 param) {
+	create_framebuffer(width, height, param, COLORBUFFER);
+}
+
+INTERNAL inline
+Framebuffer create_depthbuffer(u32 width, u32 height, u16 param) {
+	create_framebuffer(width, height, param, DEPTHBUFFER);
 }
 
 INTERNAL inline
@@ -146,5 +176,9 @@ INTERNAL inline
 void clear_bound_framebuffer() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

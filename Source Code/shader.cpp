@@ -31,6 +31,10 @@
 #include <iostream>
 #include <vector>
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 GLint get_uniform_location(Shader shader, const GLchar* name) {
 	return glGetUniformLocation(shader.ID, name);
 }
@@ -229,3 +233,7 @@ void dispose_shader(Shader shader) {
 	glDeleteShader(shader.vertexshaderID);
 	glDeleteProgram(shader.ID);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

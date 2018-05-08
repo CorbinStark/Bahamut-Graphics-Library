@@ -33,6 +33,10 @@
 #include <memory>
 #include "defines.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 //================================================
 //Description: An abstract component class for 
 //	entities. Components will be sorted in a map
@@ -87,8 +91,11 @@ public:
 		}
 	}
 private:
-
 	std::unordered_map<const std::type_info*, std::unique_ptr<Component>> _components;
 };
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

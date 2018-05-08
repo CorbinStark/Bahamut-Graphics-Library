@@ -44,6 +44,10 @@
 #include "defines.h"
 #include "maths.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32
 
@@ -76,8 +80,10 @@ bool is_button_up(unsigned int button);
 
 double get_elapsed_time();
 
-void get_mouse_pos(double* mousex, double* mousey);
+void get_mouse_pos(double* mousexPtr, double* mouseyPtr);
 vec2 get_mouse_pos();
+void get_mouse_pos_adjusted(double* mousexPtr, double* mouseyPtr, Rect viewport);
+vec2 get_mouse_pos_adjusted(Rect viewport);
 void set_window_should_close(bool shouldClose);
 void dispose_window();
 
@@ -96,5 +102,9 @@ int get_virtual_height();
 vec2 get_virtual_size();
 int get_window_width();
 int get_window_height();
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

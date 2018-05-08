@@ -31,11 +31,20 @@
 
 #include "defines.h"
 
-INTERNAL const f32 PI = (float)3.141592653589793238;
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
+INTERNAL const f32 PI = (f32)3.141592653589793238;
 
 INTERNAL
 inline f32 deg_to_rad(f32 deg) {
-	return deg * PI / 180;
+	return deg * PI / 180.0f;
+}
+
+INTERNAL
+inline f32 rad_to_deg(f32 rad) {
+	return rad * 180.0f / PI;
 }
 
 union vec2 {
@@ -175,7 +184,7 @@ inline vec2 normalize(vec2 vec) {
 	return vec;
 }
 
-INTERNAL 
+INTERNAL
 inline f32 dot(vec2 a, vec2 b) {
 	return (a.x * b.x) + (a.y * b.y);
 }
@@ -264,7 +273,7 @@ inline vec2 operator+(vec2 a, vec2 b) {
 	return c;
 }
 
-INTERNAL 
+INTERNAL
 inline vec2 operator-(vec2 a, vec2 b) {
 	vec2 c = { 0 };
 	c.x = a.x - b.x;
@@ -433,11 +442,11 @@ union mat4 {
 INTERNAL
 inline mat4 identity() {
 	mat4 mat =
-	{ 
-	    1, 0, 0, 0,
-	    0, 1, 0, 0,
-	    0, 0, 1, 0,
-	    0, 0, 0, 1 
+	{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
 	};
 	return mat;
 }
@@ -473,8 +482,6 @@ inline void operator*=(mat4& a, const mat4 b) {
 	}
 	memcpy(a.elements, data, 16 * sizeof(f32));
 }
-
-//TODO: replace everything like "mat.elements[0 + 3 * 4]" with "mat.m03"
 
 INTERNAL
 inline mat4 translation(const f32 x, const f32 y, const f32 z) {
@@ -605,9 +612,9 @@ INTERNAL
 inline mat4 create_transformation_matrix(f32 x, f32 y, f32 z, f32 rotX, f32 rotY, f32 rotZ, f32 scaleX, f32 scaleY, f32 scaleZ) {
 	mat4 mat = identity();
 	mat *= translation(x, y, z);
-	mat *= rotateZ(rotZ);
-	mat *= rotateY(rotY);
-	mat *= rotateX(rotX);
+	mat *= rotation(rotX, 1, 0, 0);
+	mat *= rotation(rotY, 0, 1, 0);
+	mat *= rotation(rotZ, 0, 0, 1);
 	mat *= scale(scaleX, scaleY, scaleZ);
 	return mat;
 }
@@ -623,6 +630,157 @@ inline mat4 create_transformation_matrix(const vec3 translation, const vec3 rota
 
 //ALGORITHMS
 
+INTERNAL
+inline mat4 inverse(const mat4 mat) {
+	mat4 result;
+
+	result.elements[0] =
+		(mat.elements[5] * mat.elements[10] * mat.elements[15]) -
+		(mat.elements[5] * mat.elements[11] * mat.elements[14]) -
+		(mat.elements[9] * mat.elements[6] * mat.elements[15]) +
+		(mat.elements[9] * mat.elements[7] * mat.elements[14]) +
+		(mat.elements[13] * mat.elements[6] * mat.elements[11]) -
+		(mat.elements[13] * mat.elements[7] * mat.elements[10]);
+
+	result.elements[1] =
+		(-mat.elements[1] * mat.elements[10] * mat.elements[15]) +
+		(mat.elements[1] * mat.elements[11] * mat.elements[14]) +
+		(mat.elements[9] * mat.elements[2] * mat.elements[15]) -
+		(mat.elements[9] * mat.elements[3] * mat.elements[14]) -
+		(mat.elements[13] * mat.elements[2] * mat.elements[11]) +
+		(mat.elements[13] * mat.elements[3] * mat.elements[10]);
+
+	result.elements[2] =
+		(mat.elements[1] * mat.elements[6] * mat.elements[15]) -
+		(mat.elements[1] * mat.elements[7] * mat.elements[14]) -
+		(mat.elements[5] * mat.elements[2] * mat.elements[15]) +
+		(mat.elements[5] * mat.elements[3] * mat.elements[14]) +
+		(mat.elements[13] * mat.elements[2] * mat.elements[7]) -
+		(mat.elements[13] * mat.elements[3] * mat.elements[6]);
+
+	result.elements[3] =
+		(-mat.elements[1] * mat.elements[6] * mat.elements[11]) +
+		(mat.elements[1] * mat.elements[7] * mat.elements[10]) +
+		(mat.elements[5] * mat.elements[2] * mat.elements[11]) -
+		(mat.elements[5] * mat.elements[3] * mat.elements[10]) -
+		(mat.elements[9] * mat.elements[2] * mat.elements[7]) +
+		(mat.elements[9] * mat.elements[3] * mat.elements[6]);
+
+	result.elements[4] =
+		(-mat.elements[4] * mat.elements[10] * mat.elements[15]) +
+		(mat.elements[4] * mat.elements[11] * mat.elements[14]) +
+		(mat.elements[8] * mat.elements[6] * mat.elements[15]) -
+		(mat.elements[8] * mat.elements[7] * mat.elements[14]) -
+		(mat.elements[12] * mat.elements[6] * mat.elements[11]) +
+		(mat.elements[12] * mat.elements[7] * mat.elements[10]);
+
+	result.elements[5] =
+		(mat.elements[0] * mat.elements[10] * mat.elements[15]) -
+		(mat.elements[0] * mat.elements[11] * mat.elements[14]) -
+		(mat.elements[8] * mat.elements[2] * mat.elements[15]) +
+		(mat.elements[8] * mat.elements[3] * mat.elements[14]) +
+		(mat.elements[12] * mat.elements[2] * mat.elements[11]) -
+		(mat.elements[12] * mat.elements[3] * mat.elements[10]);
+
+	result.elements[6] =
+		(-mat.elements[0] * mat.elements[6] * mat.elements[15]) +
+		(mat.elements[0] * mat.elements[7] * mat.elements[14]) +
+		(mat.elements[4] * mat.elements[2] * mat.elements[15]) -
+		(mat.elements[4] * mat.elements[3] * mat.elements[14]) -
+		(mat.elements[12] * mat.elements[2] * mat.elements[7]) +
+		(mat.elements[12] * mat.elements[3] * mat.elements[6]);
+
+	result.elements[7] =
+		(mat.elements[0] * mat.elements[6] * mat.elements[11]) -
+		(mat.elements[0] * mat.elements[7] * mat.elements[10]) -
+		(mat.elements[4] * mat.elements[2] * mat.elements[11]) +
+		(mat.elements[4] * mat.elements[3] * mat.elements[10]) +
+		(mat.elements[8] * mat.elements[2] * mat.elements[7]) -
+		(mat.elements[8] * mat.elements[3] * mat.elements[6]);
+
+	result.elements[8] =
+		(mat.elements[4] * mat.elements[9] * mat.elements[15]) -
+		(mat.elements[4] * mat.elements[11] * mat.elements[13]) -
+		(mat.elements[8] * mat.elements[5] * mat.elements[15]) +
+		(mat.elements[8] * mat.elements[7] * mat.elements[13]) +
+		(mat.elements[12] * mat.elements[5] * mat.elements[11]) -
+		(mat.elements[12] * mat.elements[7] * mat.elements[9]);
+
+	result.elements[9] =
+		(-mat.elements[0] * mat.elements[9] * mat.elements[15]) +
+		(mat.elements[0] * mat.elements[11] * mat.elements[13]) +
+		(mat.elements[8] * mat.elements[1] * mat.elements[15]) -
+		(mat.elements[8] * mat.elements[3] * mat.elements[13]) -
+		(mat.elements[12] * mat.elements[1] * mat.elements[11]) +
+		(mat.elements[12] * mat.elements[3] * mat.elements[9]);
+
+	result.elements[10] =
+		(mat.elements[0] * mat.elements[5] * mat.elements[15]) -
+		(mat.elements[0] * mat.elements[7] * mat.elements[13]) -
+		(mat.elements[4] * mat.elements[1] * mat.elements[15]) +
+		(mat.elements[4] * mat.elements[3] * mat.elements[13]) +
+		(mat.elements[12] * mat.elements[1] * mat.elements[7]) -
+		(mat.elements[12] * mat.elements[3] * mat.elements[5]);
+
+	result.elements[11] =
+		(-mat.elements[0] * mat.elements[5] * mat.elements[11]) +
+		(mat.elements[0] * mat.elements[7] * mat.elements[9]) +
+		(mat.elements[4] * mat.elements[1] * mat.elements[11]) -
+		(mat.elements[4] * mat.elements[3] * mat.elements[9]) -
+		(mat.elements[8] * mat.elements[1] * mat.elements[7]) +
+		(mat.elements[8] * mat.elements[3] * mat.elements[5]);
+
+	result.elements[12] =
+		(-mat.elements[4] * mat.elements[9] * mat.elements[14]) +
+		(mat.elements[4] * mat.elements[10] * mat.elements[13]) +
+		(mat.elements[8] * mat.elements[5] * mat.elements[14]) -
+		(mat.elements[8] * mat.elements[6] * mat.elements[13]) -
+		(mat.elements[12] * mat.elements[5] * mat.elements[10]) +
+		(mat.elements[12] * mat.elements[6] * mat.elements[9]);
+
+	result.elements[13] =
+		(mat.elements[0] * mat.elements[9] * mat.elements[14]) -
+		(mat.elements[0] * mat.elements[10] * mat.elements[13]) -
+		(mat.elements[8] * mat.elements[1] * mat.elements[14]) +
+		(mat.elements[8] * mat.elements[2] * mat.elements[13]) +
+		(mat.elements[12] * mat.elements[1] * mat.elements[10]) -
+		(mat.elements[12] * mat.elements[2] * mat.elements[9]);
+
+	result.elements[14] =
+		(-mat.elements[0] * mat.elements[5] * mat.elements[14]) +
+		(mat.elements[0] * mat.elements[6] * mat.elements[13]) +
+		(mat.elements[4] * mat.elements[1] * mat.elements[14]) -
+		(mat.elements[4] * mat.elements[2] * mat.elements[13]) -
+		(mat.elements[12] * mat.elements[1] * mat.elements[6]) +
+		(mat.elements[12] * mat.elements[2] * mat.elements[5]);
+
+	result.elements[15] =
+		(mat.elements[0] * mat.elements[5] * mat.elements[10]) -
+		(mat.elements[0] * mat.elements[6] * mat.elements[9]) -
+		(mat.elements[4] * mat.elements[1] * mat.elements[10]) +
+		(mat.elements[4] * mat.elements[2] * mat.elements[9]) +
+		(mat.elements[8] * mat.elements[1] * mat.elements[6]) -
+		(mat.elements[8] * mat.elements[2] * mat.elements[5]);
+
+	f32 determinate =
+		mat.elements[0] * result.elements[0] +
+		mat.elements[1] * result.elements[4] +
+		mat.elements[2] * result.elements[8] +
+		mat.elements[3] * result.elements[12];
+
+	if (determinate == 0) {
+		BMT_LOG(WARNING, "Matrix could not be inverted! Determinate = 0");
+		return result;
+	}
+
+	determinate = 1.0 / determinate;
+
+	for (u16 i = 0; i < 16; ++i) {
+		result.elements[i] *= determinate;
+	}
+
+	return result;
+}
 
 INTERNAL
 inline bool point_inside_triangle(vec3 point, vec3 tri1, vec3 tri2, vec3 tri3) {
@@ -659,9 +817,58 @@ inline mat4 look_at(const vec3 camera, const vec3 center, const vec3 up = V3(0, 
 	mat.m22 = -dir.z;
 	mat.m30 = -dot(right, camera);
 	mat.m31 = -dot(upNorm, camera);
-	mat.m32 =  dot(dir, camera);
+	mat.m32 = dot(dir, camera);
 
 	return mat;
 }
+
+struct Camera {
+	f32 x;
+	f32 y;
+	f32 z;
+	f32 pitch;
+	f32 yaw;
+	f32 roll;
+};
+
+INTERNAL
+inline mat4 create_view_matrix(Camera cam) {
+	mat4 mat = identity();
+	mat *= rotation(cam.pitch, 1, 0, 0);
+	mat *= rotation(cam.yaw, 0, 1, 0);
+	mat *= rotation(cam.roll, 0, 0, 1);
+	mat *= translation(-cam.x, -cam.y, -cam.z);
+	return mat;
+}
+
+INTERNAL
+inline void move_cam_forward(Camera* cam, f32 units) {
+	cam->z -= cos(deg_to_rad(cam->yaw))   * units;
+	cam->x += sin(deg_to_rad(cam->yaw))   * units;
+	cam->y -= sin(deg_to_rad(cam->pitch)) * units;
+}
+
+INTERNAL
+inline void move_cam_backwards(Camera* cam, f32 units) {
+	cam->z += cos(deg_to_rad(cam->yaw))   * units;
+	cam->x -= sin(deg_to_rad(cam->yaw))   * units;
+	cam->y += sin(deg_to_rad(cam->pitch)) * units;
+}
+
+INTERNAL
+inline void move_cam_right(Camera* cam, f32 units) {
+	cam->x += cos(deg_to_rad(cam->yaw)) * units;
+	cam->z += sin(deg_to_rad(cam->yaw)) * units;
+}
+
+INTERNAL
+inline void move_cam_left(Camera* cam, f32 units) {
+	cam->x -= cos(deg_to_rad(cam->yaw)) * units;
+	cam->z -= sin(deg_to_rad(cam->yaw)) * units;
+}
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

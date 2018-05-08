@@ -27,8 +27,11 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "font.h"
-
 #include <iostream>
+
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
 
 INTERNAL
 Character* get_char(Font& font, const GLchar c) {
@@ -140,7 +143,7 @@ Texture create_texture_from_string(Font& font, const std::string str, GLubyte r,
 	//gen texture
 	Texture tex;
 	tex.width = w;
-	tex.height = h; 
+	tex.height = h;
 	tex.flip_flag = 0;
 
 	glActiveTexture(GL_TEXTURE0);
@@ -215,3 +218,7 @@ void dispose_font(Font& font) {
 	FT_Done_Face(font.face);
 	FT_Done_FreeType(font.ft);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

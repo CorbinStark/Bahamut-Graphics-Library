@@ -33,6 +33,10 @@
 #include <AL/alc.h>
 #include <AL/al.h>
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 struct Sound {
 	ALuint src;
 	ALuint buffer;
@@ -58,5 +62,9 @@ void resume_sound(Sound sound);
 void set_sound_looping(Sound sound, bool loop);
 
 void dispose_sound(Sound& sound);
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

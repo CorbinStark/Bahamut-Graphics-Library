@@ -29,6 +29,22 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <stdint.h>
+#include <float.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <cstdlib>
+#include <assert.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 #define INTERNAL static
 #define STORAGE  static
 #define GLOBAL   extern
@@ -41,7 +57,6 @@
 #define BMT_MIN(a,b) ((a) < (b) ? (b) : (a))
 #define BMT_CLAMP(i,a,b) (BMT_MAX(BMT_MIN(a,b), i))
 
-#include <stdint.h>
 #define i8 int8_t
 #define u8 uint8_t
 #define i16 int16_t
@@ -50,25 +65,19 @@
 #define u32 uint32_t
 #define i64 int64_t
 #define u64 uint64_t
-#include <float.h>
 #define real32 float
 #define real64 double
 #define f32 float
 #define f64 double
-#include <stddef.h>
 #define b32 int32_t
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <cstdlib>
 #define FATAL_ERROR 0
 #define MINOR_ERROR 1
 #define INFO 2
 #define WARNING 3
 #define DEBUG 4
 
-//TODO: have log saved to file too (possibly only while in debug mode)
+	//TODO: have log saved to file too (possibly only while in debug mode)
 INTERNAL
 inline void BMT_LOG(u8 TYPE, const char* format, ...) {
 	switch (TYPE) {
@@ -79,7 +88,7 @@ inline void BMT_LOG(u8 TYPE, const char* format, ...) {
 	case DEBUG:       fprintf(stderr, "DEBUG: ");       break;
 	default:          break;
 	}
-	
+
 	va_list v1;
 	va_start(v1, format);
 	vfprintf(stderr, format, v1);
@@ -90,7 +99,6 @@ inline void BMT_LOG(u8 TYPE, const char* format, ...) {
 	if (TYPE == FATAL_ERROR) exit(1);
 }
 
-#include <string.h>
 #if defined(_WIN32) || defined(_WIN64)
 #define strtok_r strtok_s
 #endif
@@ -231,12 +239,9 @@ inline bool colliding(Rect rect, f32 x, f32 y) {
 }
 
 #ifndef BMT_ASSERT
-#include <assert.h>
 #define BMT_ASSERT(expr) assert(expr)
 #endif
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 INTERNAL
 inline GLchar* read_file(const GLchar* filename) {
 	FILE* file = fopen(filename, "rt");
@@ -426,5 +431,9 @@ inline GLchar* read_file(const GLchar* filename) {
 #define JOYSTICK_15            14
 #define JOYSTICK_16            15
 #define JOYSTICK_LAST          GLFW_JOYSTICK_16
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif

@@ -29,7 +29,11 @@
 #include "audio.h"
 #include <string.h>
 
-//INTERNAL VARIABLES
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
+	//INTERNAL VARIABLES
 INTERNAL u8 masterVolume;
 INTERNAL ALCcontext* context;
 
@@ -112,7 +116,7 @@ void init_audio() {
 	context = alcCreateContext(device, NULL);
 	if (context == NULL || alcMakeContextCurrent(context) == AL_FALSE) {
 		if (context != NULL) alcDestroyContext(context);
-			
+
 		alcCloseDevice(device);
 
 		BMT_LOG(FATAL_ERROR, "Could not initialize audio context!");
@@ -254,3 +258,7 @@ void dispose_sound(Sound& sound) {
 	alDeleteBuffers(1, &sound.buffer);
 	sound.format = 0;
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

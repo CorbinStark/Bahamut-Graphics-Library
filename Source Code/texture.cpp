@@ -29,6 +29,10 @@
 #include "texture.h"
 #include <SOIL.h>
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 #define MAX_LOADED_TEXTURES 0xFFFF
 #define _PREVENT_MULTIPLE_TEXTURES
 
@@ -122,7 +126,8 @@ Texture load_texture(const char* filepath, u16 param) {
 		}
 #endif
 
-	} else {
+	}
+	else {
 		BMT_LOG(WARNING, "[%s] Texture could not be loaded! Disposing and returning blank texture.", filepath);
 		dispose_texture(texture);
 	}
@@ -174,3 +179,7 @@ void unbind_texture(u32 slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif

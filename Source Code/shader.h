@@ -32,6 +32,10 @@
 #include "defines.h"
 #include "maths.h"
 
+#if defined(BMT_USE_NAMESPACE) 
+namespace bmt {
+#endif
+
 struct Shader {
 	GLuint ID;
 	GLuint vertexshaderID;
@@ -75,5 +79,9 @@ void start_shader(Shader shader);
 void stop_shader();
 
 void dispose_shader(Shader shader);
+
+#if defined(BMT_USE_NAMESPACE) 
+}
+#endif
 
 #endif
