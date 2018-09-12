@@ -444,7 +444,7 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 		return;
 	int texSlot = submit_tex(tex);
 	GLfloat* uvs;
-
+	
 	uvs = DEFAULT_UVS;
 	if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
 		uvs = FLIP_BOTH_UVS;
@@ -452,17 +452,17 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 		uvs = FLIP_HORIZONTAL_UVS;
 	if (tex.flip_flag & FLIP_VERTICAL)
 		uvs = FLIP_VERTICAL_UVS;
-
+	
 	float originX = origin.x;
 	float originY = origin.y;
-
+	
 	//degToRad is expensive don't do it if there is no rotation
 	if (rotation != 0)
 		rotation = deg_to_rad(rotation);
-
+	
 	float newX;
 	float newY;
-
+	
 	float cosineDegree = 1;
 	float sineDegree = 0;
 	//sin and cos are expensive don't do it if there is no rotation
@@ -470,7 +470,7 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 		cosineDegree = cos(rotation);
 		sineDegree = sin(rotation);
 	}
-
+	
 	newX = xPos;
 	newY = yPos;
 	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
@@ -480,10 +480,10 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	buffer->color.z = 1;
 	buffer->color.w = 1;
 	buffer->uv.x = uvs[0];
-	buffer->uv.x = uvs[1];
+	buffer->uv.y = uvs[1];
 	buffer->texid = texSlot;
 	buffer++;
-
+	
 	newX = xPos;
 	newY = yPos + tex.height;
 	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
@@ -493,10 +493,10 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	buffer->color.z = 1;
 	buffer->color.w = 1;
 	buffer->uv.x = uvs[2];
-	buffer->uv.x = uvs[3];
+	buffer->uv.y = uvs[3];
 	buffer->texid = texSlot;
 	buffer++;
-
+	
 	newX = xPos + tex.width;
 	newY = yPos + tex.height;
 	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
@@ -506,10 +506,10 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	buffer->color.z = 1;
 	buffer->color.w = 1;
 	buffer->uv.x = uvs[4];
-	buffer->uv.x = uvs[5];
+	buffer->uv.y = uvs[5];
 	buffer->texid = texSlot;
 	buffer++;
-
+	
 	newX = xPos + tex.width;
 	newY = yPos;
 	buffer->pos.x = cosineDegree * (newX - originX) - sineDegree * (newY - originY) + originX;
@@ -519,11 +519,79 @@ void draw_texture_rotated(Texture tex, i32 xPos, i32 yPos, vec2 origin, f32 rota
 	buffer->color.z = 1;
 	buffer->color.w = 1;
 	buffer->uv.x = uvs[6];
-	buffer->uv.x = uvs[7];
+	buffer->uv.y = uvs[7];
 	buffer->texid = texSlot;
 	buffer++;
-
+	
 	indexcount += 6;
+
+	//if (tex.ID == 0)
+	//	return;
+	//
+	//f32 r = 1;
+	//f32 g = 1;
+	//f32 b = 1;
+	//f32 a = 1;
+	//
+	//int texSlot = submit_tex(tex);
+	//GLfloat* uvs;
+	//
+	//f32 cosTheta = cos(deg_to_rad(rotation));
+	//f32 sinTheta = sin(deg_to_rad(rotation));
+	//
+	//uvs = DEFAULT_UVS;
+	//if (tex.flip_flag & FLIP_HORIZONTAL && tex.flip_flag & FLIP_VERTICAL)
+	//	uvs = FLIP_BOTH_UVS;
+	//if (tex.flip_flag & FLIP_HORIZONTAL)
+	//	uvs = FLIP_HORIZONTAL_UVS;
+	//if (tex.flip_flag & FLIP_VERTICAL)
+	//	uvs = FLIP_VERTICAL_UVS;
+	//
+	//buffer->pos.x = ( (xPos - origin.x) * cosTheta - (yPos - origin.y) * sinTheta ) + origin.x;
+	//buffer->pos.y = ( (yPos - origin.y) * cosTheta + (xPos - origin.x) * sinTheta ) + origin.y;
+	//buffer->color.x = r;
+	//buffer->color.y = g;
+	//buffer->color.z = b;
+	//buffer->color.w = a;
+	//buffer->uv.x = uvs[0];
+	//buffer->uv.y = uvs[1];
+	//buffer->texid = texSlot;
+	//buffer++;
+	//
+	//buffer->pos.x = ( (xPos - origin.x) * cosTheta - (yPos - origin.y) * sinTheta ) + origin.x;
+	//buffer->pos.y = ( ((yPos + tex.height) - origin.y) * cosTheta + (xPos - origin.x) * sinTheta ) + origin.y;
+	//buffer->color.x = r;
+	//buffer->color.y = g;
+	//buffer->color.z = b;
+	//buffer->color.w = a;
+	//buffer->uv.x = uvs[2];
+	//buffer->uv.y = uvs[3];
+	//buffer->texid = texSlot;
+	//buffer++;
+	//
+	//buffer->pos.x = ( ((xPos + tex.width) - origin.x) * cosTheta - (yPos - origin.y) * sinTheta ) + origin.x;
+	//buffer->pos.y = ( ((yPos + tex.height) - origin.y) * cosTheta + (xPos - origin.x) * sinTheta ) + origin.y;
+	//buffer->color.x = r;
+	//buffer->color.y = g;
+	//buffer->color.z = b;
+	//buffer->color.w = a;
+	//buffer->uv.x = uvs[4];
+	//buffer->uv.y = uvs[5];
+	//buffer->texid = texSlot;
+	//buffer++;
+	//
+	//buffer->pos.x = ( ((xPos + tex.width) - origin.x) * cosTheta - (yPos - origin.y) * sinTheta ) + origin.x;
+	//buffer->pos.y = ( (yPos - origin.y) * cosTheta + (xPos - origin.x) * sinTheta ) + origin.y;
+	//buffer->color.x = r;
+	//buffer->color.y = g;
+	//buffer->color.z = b;
+	//buffer->color.w = a;
+	//buffer->uv.x = uvs[6];
+	//buffer->uv.y = uvs[7];
+	//buffer->texid = texSlot;
+	//buffer++;
+	//
+	//indexcount += 6;
 }
 
 void draw_texture_EX(Texture tex, Rect source, Rect dest, f32 r, f32 g, f32 b, f32 a) {

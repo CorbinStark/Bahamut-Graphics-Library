@@ -305,6 +305,15 @@ inline vec2 operator/(vec2 a, vec2 b) {
 	return c;
 }
 
+INTERNAL
+inline vec2 operator/(vec2 a, f32 b) {
+	vec2 c = { 0 };
+	c.x = a.x / b;
+	c.y = a.y / b;
+	return c;
+}
+
+
 // VEC3 
 
 INTERNAL
@@ -773,7 +782,7 @@ inline mat4 inverse(const mat4 mat) {
 		return result;
 	}
 
-	determinate = 1.0 / determinate;
+	determinate = 1.0f / determinate;
 
 	for (u16 i = 0; i < 16; ++i) {
 		result.elements[i] *= determinate;

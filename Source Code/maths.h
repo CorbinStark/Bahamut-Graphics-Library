@@ -298,10 +298,34 @@ inline vec2 operator*(f32 a, vec2 b) {
 }
 
 INTERNAL
+inline vec2 operator*(vec2 a, f32 b) {
+	vec2 c = { 0 };
+	c.x = a.x * b;
+	c.y = a.y * b;
+	return c;
+}
+
+INTERNAL
 inline vec2 operator/(vec2 a, vec2 b) {
 	vec2 c = { 0 };
 	c.x = a.x / b.x;
 	c.y = a.y / b.y;
+	return c;
+}
+
+INTERNAL
+inline vec2 operator/(f32 a, vec2 b) {
+	vec2 c = { 0 };
+	c.x = a / b.x;
+	c.y = a / b.y;
+	return c;
+}
+
+INTERNAL
+inline vec2 operator/(vec2 a, f32 b) {
+	vec2 c = { 0 };
+	c.x = a.x / b;
+	c.y = a.y / b;
 	return c;
 }
 
@@ -506,7 +530,6 @@ inline mat4 scale(const f32 x, const f32 y, const f32 z) {
 	mat.elements[3 + 3 * 4] = 1.0f;
 	return mat;
 }
-
 
 INTERNAL
 inline mat4 scale(const vec3& scale_vec) {

@@ -64,11 +64,14 @@ INTERNAL double targetTime = 0.0;
 INTERNAL void(*BMTKeyCallback)(int key, int action);
 INTERNAL void(*BMTMouseCallback)(double mousex, double mousey, int button, int action);
 INTERNAL void(*BMTResizeCallback)(int width, int height);
+INTERNAL void(*BMTScrollCallback)(double xoffset, double yoffset);
 
 INTERNAL int lastKeyPressed;
 INTERNAL int lastButtonPressed;
 INTERNAL int lastKeyReleased;
 INTERNAL int lastButtonReleased;
+INTERNAL double lastScrollX;
+INTERNAL double lastScrollY;
 
 INTERNAL
 void rebuildState() {
@@ -122,6 +125,14 @@ void resizeCallback(GLFWwindow* win, int width, int height) {
 	set_window_size(width, height);
 }
 
+INTERNAL
+void scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
+	if (BMTScrollCallback != NULL)
+		BMTScrollCallback(xoffset, yoffset);
+	lastScrollX = xoffset;
+	lastScrollY = yoffset;
+}
+
 void init_window(int window_width, int window_height, const char* title, bool fullscreen, bool resizable, bool primary_monitor) {
 	width = window_width;
 	height = window_height;
@@ -130,6 +141,8 @@ void init_window(int window_width, int window_height, const char* title, bool fu
 	virtual_height = window_height;
 
 	lastKeyPressed = lastButtonPressed = 0;
+	lastScrollX = 0;
+	lastScrollY = 0;
 
 	//INIT GLFW
 	if (!glfwInit()) {
@@ -216,6 +229,7 @@ void init_window(int window_width, int window_height, const char* title, bool fu
 	glfwSetMouseButtonCallback(glfw_window, mouseButtonCallback);
 	glfwSetCursorPosCallback(glfw_window, cursorPosCallback);
 	glfwSetCharCallback(glfw_window, char_callback);
+	glfwSetScrollCallback(glfw_window, scrollCallback);
 
 	//END INIT GLEW
 
@@ -264,6 +278,8 @@ void end_drawing() {
 	lastButtonPressed = 0;
 	lastKeyReleased = 0;
 	lastButtonReleased = 0;
+	lastScrollX = 0;
+	lastScrollY = 0;
 
 	glfwSwapBuffers(glfw_window);
 	glfwPollEvents();
@@ -297,12 +313,15 @@ void end_drawing() {
 
 		frameTime += extraTime;
 	}
+#if 0
 	static int framecount = 0;
 	framecount++;
 	if (framecount > 150) {
 		std::cout << "FPS:" << (int)(1.0f / (float)frameTime) << std::endl;
 		framecount = 0;
 	}
+#endif
+
 }
 
 double get_elapsed_time() {
@@ -330,6 +349,10 @@ void set_window_resize_callback(void(*resizecallback)(int width, int height)) {
 	BMTResizeCallback = resizecallback;
 }
 
+void set_scroll_callback(void(*scrollCallback)(double xoffset, double yoffset)) {
+	BMTScrollCallback = scrollCallback;
+}
+
 int get_key_pressed() {
 	return lastKeyPressed;
 }
@@ -344,6 +367,14 @@ int get_key_released() {
 
 int get_button_released() {
 	return lastButtonReleased;
+}
+
+double get_scroll_x() {
+	return lastScrollX;
+}
+
+double get_scroll_y() {
+	return lastScrollY;
 }
 
 bool is_key_pressed(unsigned int keycode) {

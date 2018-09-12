@@ -64,11 +64,14 @@ void set_clear_color(vec4 color);
 void set_key_callback(void(*keyCallback)(int key, int action));
 void set_mouse_callback(void(*mouseCallback)(double mousex, double mousey, int button, int action));
 void set_window_resize_callback(void(*resizecallback)(int width, int height));
+void set_scroll_callback(void(*scrollCallback)(double xoffset, double yosffset));
 
 int get_key_pressed();
 int get_button_pressed();
 int get_key_released();
 int get_button_released();
+double get_scroll_x();
+double get_scroll_y();
 bool is_key_pressed(unsigned int keycode);
 bool is_key_released(unsigned int keycode);
 bool is_button_pressed(unsigned int button);
