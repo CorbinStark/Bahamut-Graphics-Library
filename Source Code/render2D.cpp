@@ -1011,7 +1011,7 @@ f32 get_blackbar_height(f32 aspect) {
 	return (screen_height - new_height) / 2;
 }
 
-Rect limit_to_aspect_ratio(f32 aspect) {
+Rect fit_aspect_ratio(f32 aspect) {
 	if (aspect == 0) aspect = 1;
 	f32 screen_width = get_window_width();
 	f32 screen_height = get_window_height();

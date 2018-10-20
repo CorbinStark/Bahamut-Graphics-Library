@@ -193,7 +193,7 @@ void end2D();
 
 f32 get_blackbar_width(f32 aspect);
 f32 get_blackbar_height(f32 aspect);
-Rect limit_to_aspect_ratio(f32 aspect);
+Rect fit_aspect_ratio(f32 aspect);
 Shader load_default_shader_2D();
 
 void dispose2D();

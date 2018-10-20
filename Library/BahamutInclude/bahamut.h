@@ -44,6 +44,16 @@
 namespace bmt {
 #endif
 
+INTERNAL inline
+i32 centerx() {
+	return get_virtual_width() / 2;
+}
+
+INTERNAL inline
+i32 centery() {
+	return get_virtual_height() / 2;
+}
+
 INTERNAL vec4 LIGHTGRAY = V4(200, 200, 200, 255);
 INTERNAL vec4 GRAY = V4(130, 130, 130, 255);
 INTERNAL vec4 DARKGRAY = V4(80, 80, 80, 255);
