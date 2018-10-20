@@ -114,26 +114,21 @@ Framebuffer create_framebuffer(u32 width, u32 height, u16 param, u8 buffertype) 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	}
 	else if(buffertype == DEPTHBUFFER) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenFramebuffers(1, &buffer.ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, buffer.ID);
 
-	if (buffertype == COLORBUFFER) {
+	if(buffertype == COLORBUFFER)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.texture.ID, 0);
-		glDrawBuffer(GL_FRONT);
-		glReadBuffer(GL_FRONT);
-	}
-	else if (buffertype == DEPTHBUFFER) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer.texture.ID, 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-	}
+	else if(buffertype == DEPTHBUFFER)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_TEXTURE_2D, buffer.texture.ID, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
 		BMT_LOG(INFO, "Framebuffer #%d successfully created", buffer.ID);
@@ -141,7 +136,6 @@ Framebuffer create_framebuffer(u32 width, u32 height, u16 param, u8 buffertype) 
 	else {
 		BMT_LOG(WARNING, "Framebuffer #%d not complete!", buffer.ID);
 	}
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return buffer;
 }

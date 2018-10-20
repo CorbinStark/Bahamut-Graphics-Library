@@ -324,6 +324,28 @@ Mesh loadOBJFromString(const char* str) {
 	return mesh;
 }
 
+/*
+INTERNAL
+Mesh loadOBJ(const char* path) {
+	Mesh mesh = { 0 };
+
+	std::ifstream file(path);
+
+	std::vector<vec3> vertices;
+	std::vector<vec2> uvs;
+	std::vector<vec3> normals;
+	std::vector<GLushort> indices;
+
+	if (file) {
+		std::string line;
+		while (true) {
+			getline(file, line);
+
+		}
+	}
+}
+*/
+
 INTERNAL
 Mesh loadOBJ(const char* path) {
 	Mesh mesh = { 0 };

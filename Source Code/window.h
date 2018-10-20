@@ -57,7 +57,8 @@ void set_window_pos(int x, int y);
 void set_window_size(int width, int height);
 void begin_drawing();
 void end_drawing();
-bool is_window_closed();
+bool window_closed();
+bool window_open();
 
 void set_clear_color(float r, float g, float b, float a);
 void set_clear_color(vec4 color);

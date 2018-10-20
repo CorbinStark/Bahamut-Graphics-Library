@@ -333,8 +333,12 @@ void set_FPS_cap(double FPS) {
 	else targetTime = 1.0 / FPS;
 }
 
-bool is_window_closed() {
+bool window_closed() {
 	return glfwWindowShouldClose(glfw_window) == 1;
+}
+
+bool window_open() {
+	return glfwWindowShouldClose(glfw_window) == 0;
 }
 
 void set_key_callback(void(*keyCallback)(int key, int action)) {
