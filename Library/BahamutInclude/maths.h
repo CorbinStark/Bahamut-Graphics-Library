@@ -865,29 +865,29 @@ inline mat4 create_view_matrix(Camera cam) {
 }
 
 INTERNAL
-inline void move_cam_forward(Camera cam, f32 units) {
-	cam.z -= cos(deg_to_rad(cam.yaw))   * units;
-	cam.x += sin(deg_to_rad(cam.yaw))   * units;
-	cam.y -= sin(deg_to_rad(cam.pitch)) * units;
+inline void move_cam_forward(Camera* cam, f32 units) {
+	cam->z -= cos(deg_to_rad(cam->yaw))   * units;
+	cam->x += sin(deg_to_rad(cam->yaw))   * units;
+	cam->y -= sin(deg_to_rad(cam->pitch)) * units;
 }
 
 INTERNAL
-inline void move_cam_backwards(Camera cam, f32 units) {
-	cam.z += cos(deg_to_rad(cam.yaw))   * units;
-	cam.x -= sin(deg_to_rad(cam.yaw))   * units;
-	cam.y += sin(deg_to_rad(cam.pitch)) * units;
+inline void move_cam_backwards(Camera* cam, f32 units) {
+	cam->z += cos(deg_to_rad(cam->yaw))   * units;
+	cam->x -= sin(deg_to_rad(cam->yaw))   * units;
+	cam->y += sin(deg_to_rad(cam->pitch)) * units;
 }
 
 INTERNAL
-inline void move_cam_right(Camera cam, f32 units) {
-	cam.x += cos(deg_to_rad(cam.yaw)) * units;
-	cam.z += sin(deg_to_rad(cam.yaw)) * units;
+inline void move_cam_right(Camera* cam, f32 units) {
+	cam->x += cos(deg_to_rad(cam->yaw)) * units;
+	cam->z += sin(deg_to_rad(cam->yaw)) * units;
 }
 
 INTERNAL
-inline void move_cam_left(Camera cam, f32 units) {
-	cam.x -= cos(deg_to_rad(cam.yaw)) * units;
-	cam.z -= sin(deg_to_rad(cam.yaw)) * units;
+inline void move_cam_left(Camera* cam, f32 units) {
+	cam->x -= cos(deg_to_rad(cam->yaw)) * units;
+	cam->z -= sin(deg_to_rad(cam->yaw)) * units;
 }
 
 #if defined(BMT_USE_NAMESPACE) 
