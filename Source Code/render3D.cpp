@@ -324,60 +324,176 @@ Mesh loadOBJFromString(const char* str) {
 	return mesh;
 }
 
-/*
-INTERNAL
-Mesh loadOBJ(const char* path) {
-	Mesh mesh = { 0 };
+INTERNAL inline
+void order_vertex(std::vector<std::string>& vertexData, std::vector<GLushort>& indices, std::vector<vec2>& unordered_textures, std::vector<vec3>& unordered_normals, std::vector<vec2>& textures, std::vector<vec3>& normals) {
+	int currVertIndex = std::stoi(vertexData[0]) - 1;
+	indices.push_back(currVertIndex);
 
-	std::ifstream file(path);
+	try {
+		vec2 currentTex = unordered_textures.at(std::stoi(vertexData[1]) - 1);
+		currentTex.y = 1 - currentTex.y;
+		textures.push_back(currentTex);
+	}
+	catch (std::exception e) {
+		vec2 currentTex = V2(0, 0);
+		currentTex.y = 1 - currentTex.y;
+		textures.push_back(currentTex);
+	}
 
-	std::vector<vec3> vertices;
-	std::vector<vec2> uvs;
-	std::vector<vec3> normals;
-	std::vector<GLushort> indices;
-
-	if (file) {
-		std::string line;
-		while (true) {
-			getline(file, line);
-
-		}
+	try {
+		vec3 currentNorm = unordered_normals.at(std::stoi(vertexData[2]) - 1);
+		normals.push_back(currentNorm);
+	}
+	catch (std::exception e) {
+		vec3 currentNorm = V3(0, 0, 0);
+		normals.push_back(currentNorm);
 	}
 }
-*/
 
-INTERNAL
-Mesh loadOBJ(const char* path) {
+INTERNAL inline
+Mesh create_mesh(std::vector<vec3>& vertices, std::vector<vec2>& uvs, std::vector<vec3>& normals, std::vector<GLushort>& indices) {
 	Mesh mesh = { 0 };
 
+	//VAO
+	glGenVertexArrays(1, &mesh.vao);
+	glBindVertexArray(mesh.vao);
+
+	//POSITION
+	glGenBuffers(1, &mesh.posVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.posVBO);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//TEXTURE COORDS
+	glGenBuffers(1, &mesh.uvVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.uvVBO);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * 2 * sizeof(GLfloat), &uvs[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//NORMALS
+	glGenBuffers(1, &mesh.normVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.normVBO);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * 3 * sizeof(GLfloat), &normals[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	//INDEX
+	glGenBuffers(1, &mesh.ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), &indices[0], GL_STATIC_DRAW);
+
+	mesh.indexcount = indices.size();
+	mesh.vertexcount = vertices.size() * 3;
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	return mesh;
+}
+
+INTERNAL inline
+void load_material_library(const char* path, MaterialLibrary* library) {
+	u32 count = 0;
 	std::ifstream file(path);
-
-	std::vector<vec3> vertices;
-	std::vector<vec2> uvs;
-	std::vector<vec3> normals;
-	std::vector<GLushort> indices;
-
-	GLfloat* verticesArray = NULL;
-	GLfloat* normalsArray = NULL;
-	GLfloat* textureArray = NULL;
-	GLushort* indicesArray = NULL;
-
-	u32 texcount = 0;
-	u32 normalscount = 0;
-	u32 indexcount = 0;
-	u32 vertexcount = 0;
+	Material mat = { 0 };
+	std::string name = "";
 
 	if (file) {
 		std::string line;
-		while (true) {
-			getline(file, line);
+		while (getline(file, line)) {
+			if (!line.empty()) {
+				std::vector<std::string> tokens;
+				tokens = strsplit(line.c_str(), ' ');
+
+				//new material
+				if (tokens[0] == "newmtl") {
+					if (count != 0) {
+						library->names.push_back(name);
+						library->mats.push_back(mat);
+						mat = { 0 };
+						BMT_LOG(INFO, "[%s] .mtl material #%d loaded!", path, count);
+					}
+
+					name = tokens[1];
+					count++;
+				}
+
+				//ambient
+				else if (tokens[0] == "Ka") {
+					mat.ambientColor = V4(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]), 255);
+				}
+
+				//diffuse
+				else if (tokens[0] == "Kd") {
+					mat.diffuseColor = V4(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]), 255);
+				}
+
+				//specular
+				else if (tokens[0] == "Ks") {
+					mat.specularColor = V4(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]), 255);
+				}
+
+			}
+		}
+	}
+
+	library->names.push_back(name);
+	library->mats.push_back(mat);
+	BMT_LOG(INFO, "[%s] Material library loaded!", path);
+}
+
+INTERNAL inline
+Material find_material_in_lib(std::string name, MaterialLibrary* lib) {
+	for (u32 i = 0; i < lib->names.size(); ++i)
+		if (lib->names.at(i) == name)
+			return lib->mats.at(i);
+	BMT_LOG(WARNING, "[%s] Count not find material in library!", name);
+	return { 0 };
+}
+
+//TODO (Corbin): sub-meshes all share the same vertices and indices when they should each have their own. Split up vertices and clear the vertex list after every sub-mesh.
+INTERNAL inline
+std::vector<Mesh> loadOBJ(const char* path) {
+	std::vector<Mesh> meshes;
+	Material lastmat = { 0 };
+	MaterialLibrary library;
+	u32 count = 0;
+
+	std::ifstream file(path);
+
+	std::vector<vec2> unordered_uvs;
+	std::vector<vec3> unordered_normals;
+	std::vector<vec3> vertices;
+	std::vector<GLushort> indices;
+
+	//the order of uvs and normals is determined by the vertex they belong to.
+	std::vector<vec2> uvs;
+	std::vector<vec3> normals;
+
+	if (file) {
+		std::string line;
+		while (getline(file, line)) {
 
 			if (!line.empty()) {
 				std::vector<std::string> tokens;
 				tokens = strsplit(line.c_str(), ' ');
 
-				if (tokens[0] == "o") {
-					BMT_LOG(INFO, "[%s] Loading mesh from .OBJ. (%s)", path, tokens[1].c_str());
+				if (tokens[0] == "mtllib") {
+					//find dir that the model is in
+					std::vector<std::string> dir_tokens;
+					dir_tokens = strsplit(path, '/');
+					std::string dir = "";
+					for (u32 i = 0; i < dir_tokens.size() - 1; ++i) {
+						dir.append(dir_tokens[i]);
+						dir.append("/");
+					}
+					dir.append(tokens[1]);
+					//then load the material library from that dir
+					load_material_library(dir.c_str(), &library);
+				}
+
+				else if (tokens[0] == "o" || tokens[0] == "g") {
+					BMT_LOG(INFO, "[%s] Loading mesh group from .OBJ. (%s)", path, tokens[1].c_str());
 				}
 
 				else if (tokens[0] == "v") {
@@ -387,101 +503,64 @@ Mesh loadOBJ(const char* path) {
 
 				else if (tokens[0] == "vt") {
 					vec2 uv = V2(std::stof(tokens[1], 0), std::stof(tokens[2], 0));
-					uvs.push_back(uv);
+					unordered_uvs.push_back(uv);
 				}
 
 				else if (tokens[0] == "vn") {
 					vec3 norm = V3(std::stof(tokens[1], 0), std::stof(tokens[2], 0), std::stof(tokens[3], 0));
-					normals.push_back(norm);
+					unordered_normals.push_back(norm);
 				}
 
 				else if (tokens[0] == "f") {
-					texcount = vertices.size() * 2;
-					normalscount = vertices.size() * 3;
-					textureArray = new GLfloat[texcount]; //need 2 for every vertex
-					normalsArray = new GLfloat[normalscount]; //need 3 for every vertex
+					std::vector<std::string> vertex1 = strsplit(tokens[1].c_str(), '/');
+					std::vector<std::string> vertex2 = strsplit(tokens[2].c_str(), '/');
+					std::vector<std::string> vertex3 = strsplit(tokens[3].c_str(), '/');
 
-					break;
+					order_vertex(vertex1, indices, unordered_uvs, unordered_normals, uvs, normals);
+					order_vertex(vertex2, indices, unordered_uvs, unordered_normals, uvs, normals);
+					order_vertex(vertex3, indices, unordered_uvs, unordered_normals, uvs, normals);
+				}
+
+				else if (tokens[0] == "usemtl") {
+					//should be done AFTER faces are organized, so on the first encounter of usemtl, nothing will happen
+					if (count != 0) {
+						Mesh mesh = create_mesh(vertices, uvs, normals, indices);
+
+						mesh.material = find_material_in_lib(tokens[1], &library);
+						meshes.push_back(mesh);
+
+						//vertices.clear();
+						//indices.clear();
+						//unordered_uvs.clear();
+						//unordered_normals.clear();
+
+						uvs.clear();
+						normals.clear();
+
+						BMT_LOG(INFO, "[%s] .obj mesh #%d loaded!", path, count);
+					}
+					count++;
 				}
 			}
 		}
-		while (!line.empty()) {
-			std::vector<std::string> tokens;
-			tokens = strsplit(line.c_str(), ' ');
-			if (tokens[0] != "f") {
-				getline(file, line);
-				continue;
-			}
 
-			std::vector<std::string> vertex1 = strsplit(tokens[1].c_str(), '/');
-			std::vector<std::string> vertex2 = strsplit(tokens[2].c_str(), '/');
-			std::vector<std::string> vertex3 = strsplit(tokens[3].c_str(), '/');
-
-			process_vertex(vertex1, indices, uvs, normals, textureArray, normalsArray);
-			process_vertex(vertex2, indices, uvs, normals, textureArray, normalsArray);
-			process_vertex(vertex3, indices, uvs, normals, textureArray, normalsArray);
-			getline(file, line);
-		}
 	}
 
-	vertexcount = vertices.size() * 3;
-	indexcount = indices.size();
-	verticesArray = new GLfloat[vertexcount];
-	indicesArray = new GLushort[indexcount];
+	Mesh mesh = create_mesh(vertices, uvs, normals, indices);
 
-	int vertexIndex = 0;
-	for (vec3 vertex : vertices) {
-		verticesArray[vertexIndex++] = vertex.x;
-		verticesArray[vertexIndex++] = vertex.y;
-		verticesArray[vertexIndex++] = vertex.z;
-	}
+	//mesh.material = material;
+	meshes.push_back(mesh);
 
-	for (auto i = 0; i < indices.size(); ++i) {
-		indicesArray[i] = indices.at(i);
-	}
+	vertices.clear();
+	indices.clear();
+	unordered_uvs.clear();
+	unordered_normals.clear();
 
-	//VAO
-	glGenVertexArrays(1, &mesh.vao);
-	glBindVertexArray(mesh.vao);
+	uvs.clear();
+	normals.clear();
 
-	//POSITION
-	glGenBuffers(1, &mesh.posVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.posVBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexcount * sizeof(GLfloat), verticesArray, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//TEXTURE COORDS
-	glGenBuffers(1, &mesh.uvVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.uvVBO);
-	glBufferData(GL_ARRAY_BUFFER, texcount * sizeof(GLfloat), textureArray, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//NORMALS
-	glGenBuffers(1, &mesh.normVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.normVBO);
-	glBufferData(GL_ARRAY_BUFFER, normalscount * sizeof(GLfloat), normalsArray, GL_STATIC_DRAW);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//INDEX
-	glGenBuffers(1, &mesh.ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indexcount, indicesArray, GL_STATIC_DRAW);
-
-	mesh.indexcount = indexcount;
-	mesh.vertexcount = vertexcount;
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	delete[] verticesArray;
-	delete[] normalsArray;
-	delete[] textureArray;
-	delete[] indicesArray;
-
-	BMT_LOG(INFO, "[%s] .obj file loaded!", path);
-
-	return mesh;
+	BMT_LOG(INFO, "[%s] .obj mesh #%d loaded!", path, count);
+	return meshes;
 }
 
 INTERNAL
@@ -497,17 +576,20 @@ Mesh loadFBX(const char* path) {
 }
 
 Model load_model(const char* path, const vec4 color) {
-	Model model = { 0 };
+	Model model;
 
-	if (has_extension(path, "obj"))			model.mesh = loadOBJ(path);
-	else if (has_extension(path, "3ds"))	model.mesh = load3DS(path);
-	else if (has_extension(path, "fbx"))	model.mesh = loadFBX(path);
+	if (has_extension(path, "obj"))			model.meshes = loadOBJ(path);
+	//else if (has_extension(path, "3ds"))	model.meshes = load3DS(path);
+	//else if (has_extension(path, "fbx"))	model.meshes = loadFBX(path);
 	else {
 		BMT_LOG(WARNING, "[%s] Extension not supported!", path);
 	}
 
+	model.texture = { 0 };
+	model.pos = { 0 };
+	model.rotate = { 0 };
 	model.scale = V3(1, 1, 1);
-	model.color = color;
+	//model.color = color;
 
 	return model;
 }
@@ -522,26 +604,25 @@ void dispose_mesh(Mesh& mesh) {
 }
 
 void dispose_model(Model& model) {
-	dispose_mesh(model.mesh);
+	for (u32 i = 0; i < model.meshes.size(); ++i)
+		dispose_mesh(model.meshes[i]);
 }
 
-//TODO: Create giant arrays of data containing vertex information for cubes and spheres so that they can be drawn.
-
 void init3D() {
-	billboardModel.mesh = loadOBJFromString(BILLBOARD_DATA);
+	billboardModel.meshes.push_back(loadOBJFromString(BILLBOARD_DATA));
 	billboardModel.scale = V3(1, 1, 1);
 	billboardModel.rotate = V3(0, 0, 0);
-	billboardModel.color = V4(255, 255, 255, 255);
+	billboardModel.meshes[0].material.ambientColor = V4(255, 255, 255, 255);
 
-	cubeModel.mesh = loadOBJFromString(CUBE_DATA);
+	cubeModel.meshes.push_back(loadOBJFromString(CUBE_DATA));
 	cubeModel.scale = V3(1, 1, 1);
 	cubeModel.rotate = V3(0, 0, 0);
-	cubeModel.color = V4(255, 255, 255, 255);
+	cubeModel.meshes[0].material.ambientColor = V4(255, 255, 255, 255);
 
-	sphereModel.mesh = loadOBJFromString(SPHERE_DATA);
+	sphereModel.meshes.push_back(loadOBJFromString(SPHERE_DATA));
 	sphereModel.scale = V3(1, 1, 1);
 	sphereModel.rotate = V3(0, 0, 0);
-	sphereModel.color = V4(255, 255, 255, 255);
+	sphereModel.meshes[0].material.ambientColor = V4(255, 255, 255, 255);
 	drawPool.clear();
 }
 
@@ -570,7 +651,7 @@ void draw_cube(vec3 pos, vec3 scale, vec3 rotation, Texture tex) {
 	cubeModel.scale = scale;
 	cubeModel.rotate = rotation;
 	cubeModel.texture = tex;
-	cubeModel.color = V4(255, 255, 255, 255);
+	//cubeModel.color = V4(255, 255, 255, 255);
 	drawPool[tex.ID].push_back(cubeModel);
 }
 
@@ -578,7 +659,7 @@ void draw_cube(vec3 pos, vec3 scale, vec3 rotation, vec4 color) {
 	cubeModel.pos = pos;
 	cubeModel.scale = scale;
 	cubeModel.rotate = rotation;
-	cubeModel.color = color;
+	//cubeModel.color = color;
 	cubeModel.texture.ID = 0;
 	drawPool[0].push_back(cubeModel);
 }
@@ -588,7 +669,7 @@ void draw_sphere(f32 x, f32 y, f32 z, f32 radius, Texture tex) {
 	sphereModel.scale = V3(radius, radius, radius);
 	sphereModel.rotate = V3(0, 0, 0);
 	sphereModel.texture = tex;
-	sphereModel.color = V4(255, 255, 255, 255);
+	//sphereModel.color = V4(255, 255, 255, 255);
 	drawPool[tex.ID].push_back(sphereModel);
 }
 
@@ -596,7 +677,7 @@ void draw_sphere(f32 x, f32 y, f32 z, f32 radius, vec4 color) {
 	sphereModel.pos = V3(x, y, z);
 	sphereModel.scale = V3(radius, radius, radius);
 	sphereModel.rotate = V3(0, 0, 0);
-	sphereModel.color = color;
+	//sphereModel.color = color;
 	sphereModel.texture.ID = 0;
 	drawPool[0].push_back(sphereModel);
 }
@@ -621,7 +702,7 @@ void draw_billboard(vec3 pos, vec2 scale, vec3 rotation, vec4 color) {
 	billboardModel.pos = pos;
 	billboardModel.scale = V3(scale, 1.0f);
 	billboardModel.rotate = rotation;
-	billboardModel.color = color;
+	//billboardModel.color = color;
 	billboardModel.texture.ID = 0;
 	drawPool[0].push_back(billboardModel);
 }
@@ -645,10 +726,19 @@ void end3D() {
 			else {
 				upload_bool(shader, "textureIsBound", true);
 			}
-			upload_vec4(shader, "color", V4(currentModel->color.x / 255.0f, currentModel->color.y / 255.0f, currentModel->color.z / 255.0f, currentModel->color.w / 255.0f));
-			bind_mesh(currentModel->mesh);
-			glDrawElements(GL_TRIANGLES, currentModel->mesh.indexcount, GL_UNSIGNED_SHORT, 0);
-			unbind_mesh();
+
+			for (u16 i = 0; i < currentModel->meshes.size(); ++i) {
+				Mesh* currentMesh = &currentModel->meshes[i];
+				Material* mat = &currentMesh->material;
+
+				upload_vec4(shader, "ambientColor", V4(mat->ambientColor.x, mat->ambientColor.y, mat->ambientColor.z, mat->ambientColor.w));
+				upload_vec4(shader, "diffuseColor", V4(mat->diffuseColor.x, mat->diffuseColor.y, mat->diffuseColor.z, mat->diffuseColor.w));
+				upload_vec4(shader, "specularColor", V4(mat->specularColor.x, mat->specularColor.y, mat->specularColor.z, mat->specularColor.w));
+
+				bind_mesh(*currentMesh);
+				glDrawElements(GL_TRIANGLES, currentMesh->indexcount, GL_UNSIGNED_SHORT, 0);
+				unbind_mesh();
+			}
 		}
 		unbind_texture(0);
 	}

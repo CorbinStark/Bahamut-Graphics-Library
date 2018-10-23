@@ -43,18 +43,7 @@ namespace bmt {
 #define MAX_MODELS 10000
 #endif
 
-struct Mesh {
-	u32 vertexcount;
-	u32 indexcount;
-	GLuint vao;
-	GLuint posVBO;
-	GLuint uvVBO;
-	GLuint normVBO;
-	GLuint ebo;
-};
-
 struct Material {
-	Shader shader;
 	Texture diffuse;
 	Texture normals;
 	Texture specular;
@@ -64,11 +53,26 @@ struct Material {
 	f32 gloss;
 };
 
-struct Model {
-	Mesh mesh;
+struct MaterialLibrary {
+	std::vector<std::string> names;
+	std::vector<Material> mats;
+};
+
+struct Mesh {
+	u32 vertexcount;
+	u32 indexcount;
+
 	Material material;
+	GLuint vao;
+	GLuint posVBO;
+	GLuint uvVBO;
+	GLuint normVBO;
+	GLuint ebo;
+};
+
+struct Model {
+	std::vector<Mesh> meshes;
 	Texture texture;
-	vec4 color;
 	vec3 pos;
 	vec3 rotate;
 	vec3 scale;
