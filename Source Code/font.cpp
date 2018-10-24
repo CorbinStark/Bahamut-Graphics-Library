@@ -211,6 +211,14 @@ Texture create_texture_from_string(Font& font, const std::string str, GLubyte r,
 }
 
 void dispose_font(Font& font) {
+	if (font.face == NULL) {
+		BMT_LOG(WARNING, "Font face is NULL");
+		return;
+	}
+	if (font.characters == NULL) {
+		BMT_LOG(WARNING, "Font characters are NULL");
+	}
+
 	for (int i = 0; i < 255; ++i) {
 		dispose_texture(font.characters[i]->texture);
 		delete font.characters[i];

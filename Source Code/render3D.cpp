@@ -223,17 +223,17 @@ Mesh loadOBJFromString(const char* str) {
 				tokens = strsplit(line.c_str(), ' ');
 
 				if (tokens[0] == "v") {
-					vec3 v = V3(std::stof(tokens[1], 0), std::stof(tokens[2], 0), std::stof(tokens[3], 0));
+					vec3 v = V3(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]));
 					vertices.push_back(v);
 				}
 
 				else if (tokens[0] == "vt") {
-					vec2 uv = V2(std::stof(tokens[1], 0), std::stof(tokens[2], 0));
+					vec2 uv = V2(std::stof(tokens[1]), std::stof(tokens[2]));
 					uvs.push_back(uv);
 				}
 
 				else if (tokens[0] == "vn") {
-					vec3 norm = V3(std::stof(tokens[1], 0), std::stof(tokens[2], 0), std::stof(tokens[3], 0));
+					vec3 norm = V3(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]));
 					normals.push_back(norm);
 				}
 
@@ -452,6 +452,7 @@ Material find_material_in_lib(std::string name, MaterialLibrary* lib) {
 }
 
 //TODO (Corbin): sub-meshes all share the same vertices and indices when they should each have their own. Split up vertices and clear the vertex list after every sub-mesh.
+//TODO (Corbin): I think the normals and uvs are being ordered incorrectly, the results are weird and lighting doesn't work. fix that.
 INTERNAL inline
 std::vector<Mesh> loadOBJ(const char* path) {
 	std::vector<Mesh> meshes;
@@ -526,7 +527,7 @@ std::vector<Mesh> loadOBJ(const char* path) {
 					if (count != 0) {
 						Mesh mesh = create_mesh(vertices, uvs, normals, indices);
 
-						mesh.material = find_material_in_lib(tokens[1], &library);
+						mesh.material = lastmat;
 						meshes.push_back(mesh);
 
 						//vertices.clear();
@@ -539,6 +540,7 @@ std::vector<Mesh> loadOBJ(const char* path) {
 
 						BMT_LOG(INFO, "[%s] .obj mesh #%d loaded!", path, count);
 					}
+					lastmat = find_material_in_lib(tokens[1], &library);
 					count++;
 				}
 			}
@@ -548,7 +550,7 @@ std::vector<Mesh> loadOBJ(const char* path) {
 
 	Mesh mesh = create_mesh(vertices, uvs, normals, indices);
 
-	//mesh.material = material;
+	mesh.material = lastmat;
 	meshes.push_back(mesh);
 
 	vertices.clear();
